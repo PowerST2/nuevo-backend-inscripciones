@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('applicant_documents', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('applicant_id')->constrained('postulante');
+            $table->foreignId('applicant_id')->constrained('applicants');
             $table->string('document_name',255);
             $table->string('document',255);
             $table->timestamps();

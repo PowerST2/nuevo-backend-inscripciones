@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('code', 10);
             $table->string('name', 100)->index();
             $table->string('management', 100);
-            $table->foreignId('ubigeo_id')->nullable()->references('id')->on('ubigeo');
+            $table->foreignId('ubigeo_id')->nullable()->references('id')->on('ubigeos');
             $table->foreignId('country_id')->index()->references('id')->on('countries');
             $table->boolean('activo')->default(true);
         });

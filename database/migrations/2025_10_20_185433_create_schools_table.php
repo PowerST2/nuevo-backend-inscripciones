@@ -21,9 +21,9 @@ return new class extends Migration
             $table->string('management', 100)->index();
             $table->string('director')->nullable();
             $table->string('direction')->nullable();
-            $table->foreignId('ubigeo_id')->nullable()->references('id')->on('ubigeo');
-            $table->foreignId('pais_id')->index()->nullable()->references('id')->on('pais');
-            $table->unique(['code', 'anexo']);
+            $table->foreignId('ubigeo_id')->nullable()->references('id')->on('ubigeos');
+            $table->foreignId('pais_id')->index()->nullable()->references('id')->on('countries');
+            $table->unique(['code', 'annexed']);
             $table->timestamps();
         });
     }

@@ -40,19 +40,18 @@ return new class extends Migration
             $table->foreignId('ubigeo_birth_id')->nullable()->constrained('ubigeos')->onDelete('cascade');
             $table->foreignId('modality1_id')->nullable()->constrained('modalities')->onDelete('cascade');
             $table->foreignId('modality2_id')->nullable()->constrained('modalities')->onDelete('cascade');
-            $table->foreignId('speciality1_id')->nullable()->constrained('specialities')->onDelete('cascade');
-            $table->foreignId('speciality2_id')->nullable()->constrained('specialities')->onDelete('cascade');
-            $table->foreignId('speciality3_id')->nullable()->constrained('specialities')->onDelete('cascade');
-            $table->foreignId('speciality3_id')->nullable()->constrained('specialities')->onDelete('cascade');
-            $table->foreignId('speciality4_id')->nullable()->constrained('specialities')->onDelete('cascade');
-            $table->foreignId('speciality5_id')->nullable()->constrained('specialities')->onDelete('cascade');
-            $table->foreignId('speciality6_id')->nullable()->constrained('specialities')->onDelete('cascade');
+            $table->foreignId('speciality1_id')->nullable()->constrained('majors')->onDelete('cascade');
+            $table->foreignId('speciality2_id')->nullable()->constrained('majors')->onDelete('cascade');
+            $table->foreignId('speciality3_id')->nullable()->constrained('majors')->onDelete('cascade');
+            $table->foreignId('speciality4_id')->nullable()->constrained('majors')->onDelete('cascade');
+            $table->foreignId('speciality5_id')->nullable()->constrained('majors')->onDelete('cascade');
+            $table->foreignId('speciality6_id')->nullable()->constrained('majors')->onDelete('cascade');
             $table->string('classroom1_id')->nullable();
             $table->string('classroom2_id')->nullable();
             $table->string('classroom3_id')->nullable();
             $table->string('classroom_voca_id')->nullable();
             $table->boolean('annulled')->default(false);
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreignId('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
         });
     }
