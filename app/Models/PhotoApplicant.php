@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class PhotoApplicant extends Model
 {
-    //
+    protected $fillable = [];
 }
