@@ -29,23 +29,47 @@ class PeriodResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    public static function form(Schema $schema): Schema
+     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
+                // --- CAMBIO AQUÍ ---
+                // Agrega el campo 'code'
+                TextInput::make('code')
+                    ->label('Código') // Etiqueta opcional
+                    ->required()
+                    ->maxLength(255)
+                    // Asegura que el código sea único, ignorando el registro actual al editar
+                    ->unique(Period::class, 'code', ignoreRecord: true), 
+                
                 TextInput::make('name')
+                    ->label('Nombre') // Etiqueta opcional
                     ->required()
                     ->maxLength(255),
             ]);
     }
 
-    public static function table(Table $table): Table
+      public static function table(Table $table): Table
     {
         return $table
             ->recordTitleAttribute('name')
             ->columns([
+                // --- CAMBIO AQUÍ ---
+                // Agrega la columna 'code' a la tabla
+                TextColumn::make('code')
+                    ->searchable()
+                    ->sortable(), // Permite ordenar por código
+
                 TextColumn::make('name')
+                    ->label('Nombre') // Etiqueta opcional
                     ->searchable(),
+                
+                // Opcional: muestra cuándo se creó
+                TextColumn::make('created_at')
+                    ->label('Fecha de Creación')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true), // Oculta por defecto
             ])
             ->filters([
                 //
