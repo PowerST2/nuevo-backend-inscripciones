@@ -2,19 +2,19 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Modality extends Model
 {
-    public $timestamps = false;
+    use HasFactory;
 
     protected $fillable = [
         'code',
         'name',
         'name_regulation',
         'description',
-        'previous_modality',
         'start_studies',
         'active',
     ];
@@ -24,18 +24,13 @@ class Modality extends Model
         'active' => 'boolean',
     ];
 
-    public function documents(): HasMany
+    public function applicants(): HasMany
+    {
+        return $this->hasMany(Applicant::class);
+    }
+
+    public function modalityDocuments(): HasMany
     {
         return $this->hasMany(ModalityDocument::class);
-    }
-
-    public function applicantsModality1(): HasMany
-    {
-        return $this->hasMany(Applicant::class, 'modality1_id');
-    }
-
-    public function applicantsModality2(): HasMany
-    {
-        return $this->hasMany(Applicant::class, 'modality2_id');
     }
 }

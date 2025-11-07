@@ -15,10 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('code',10)->index();
             $table->string('description')->index();
-            $table->string('departamento');
+            $table->string('department');
             $table->string('province');
             $table->string('district');
-            $table->string('reniec',10)->nullable()->index();
+            $table->string('code_reniec',10)->nullable()->index();
+            $table->timestamps(); 
+
         });
     }
 

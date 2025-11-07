@@ -27,6 +27,7 @@ return new class extends Migration
             $table->boolean('active')->default(true);
             $table->boolean('special')->default(true);
             $table->boolean('vocational')->default(true);
+            $table->timestamps();
         });
     }
 

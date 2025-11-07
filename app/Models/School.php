@@ -3,22 +3,27 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class School extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'code',
+        'modular_code',
         'annexed',
         'level',
         'nombre',
         'management_minedu',
         'management',
         'director',
-        'direction',
+        'address',
+        'phones',
+        'email',
         'ubigeo_id',
-        'pais_id',
+        'country_id',
     ];
 
     public function ubigeo(): BelongsTo
@@ -28,7 +33,7 @@ class School extends Model
 
     public function country(): BelongsTo
     {
-        return $this->belongsTo(Country::class, 'pais_id');
+        return $this->belongsTo(Country::class);
     }
 
     public function applicants(): HasMany

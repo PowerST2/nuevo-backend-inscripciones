@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Applicant extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'period_id',
         'code',
@@ -97,7 +100,7 @@ class Applicant extends Model
         return $this->belongsTo(Country::class, 'country_birth_id');
     }
 
-    public function ubigeoBirth(): BelongsTo
+    public function ubigaoBirth(): BelongsTo
     {
         return $this->belongsTo(Ubigeo::class, 'ubigeo_birth_id');
     }
@@ -150,5 +153,10 @@ class Applicant extends Model
     public function documents(): HasMany
     {
         return $this->hasMany(ApplicantDocument::class);
+    }
+
+    public function photos(): HasMany
+    {
+        return $this->hasMany(PhotoApplicant::class);
     }
 }

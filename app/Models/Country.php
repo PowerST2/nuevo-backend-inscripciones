@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Country extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'code',
         'name',
@@ -14,7 +17,7 @@ class Country extends Model
 
     public function schools(): HasMany
     {
-        return $this->hasMany(School::class, 'pais_id');
+        return $this->hasMany(School::class);
     }
 
     public function universities(): HasMany
@@ -25,5 +28,10 @@ class Country extends Model
     public function applicantsBirth(): HasMany
     {
         return $this->hasMany(Applicant::class, 'country_birth_id');
+    }
+
+    public function applicants(): HasMany
+    {
+        return $this->hasMany(Applicant::class);
     }
 }

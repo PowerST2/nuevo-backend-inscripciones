@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Faculty extends Model
 {
     use HasFactory;
-    
+
     protected $fillable = [
         'code',
         'name',

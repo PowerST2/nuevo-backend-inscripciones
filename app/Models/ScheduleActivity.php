@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ScheduleActivity extends Model
 {
     use HasFactory;
-    
+
     protected $fillable = [
         'code',
         'name',
