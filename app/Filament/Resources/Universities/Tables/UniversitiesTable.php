@@ -22,11 +22,18 @@ class UniversitiesTable
                     ->searchable(),
                 TextColumn::make('management')
                     ->searchable(),
-                TextColumn::make('ubigeo.id')
+                TextColumn::make('ubigeo.department')
+                    ->label('Departamento')
+                    ->searchable(),
+                TextColumn::make('ubigeo.province')
+                    ->label('Provincia')
+                    ->searchable(),
+                TextColumn::make('ubigeo.district')
+                    ->label('Distrito')
                     ->searchable(),
                 TextColumn::make('country.name')
                     ->searchable(),
-                IconColumn::make('activo')
+                IconColumn::make('active')
                     ->boolean(),
             ])
             ->filters([

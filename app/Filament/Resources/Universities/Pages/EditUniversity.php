@@ -18,4 +18,15 @@ class EditUniversity extends EditRecord
             DeleteAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        if ($this->record->ubigeo) {
+            $data['department'] = $this->record->ubigeo->department;
+            $data['province'] = $this->record->ubigeo->province;
+            $data['district'] = $this->record->ubigeo->district;
+        }
+
+        return $data;
+    }
 }

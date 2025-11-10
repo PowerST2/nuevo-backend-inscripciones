@@ -18,9 +18,6 @@ class University extends Model
         'ubigeo_id',
         'country_id',
         'active',
-        'department',
-        'province',
-        'district',
     ];
 
     protected $casts = [
