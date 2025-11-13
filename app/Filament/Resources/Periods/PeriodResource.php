@@ -36,14 +36,14 @@ class PeriodResource extends Resource
                 // --- CAMBIO AQUÍ ---
                 // Agrega el campo 'code'
                 TextInput::make('code')
-                    ->label('Código') // Etiqueta opcional
+                    ->label(__('filament.labels.code'))
                     ->required()
                     ->maxLength(255)
                     // Asegura que el código sea único, ignorando el registro actual al editar
                     ->unique(Period::class, 'code', ignoreRecord: true), 
                 
                 TextInput::make('name')
-                    ->label('Nombre') // Etiqueta opcional
+                    ->label(__('filament.labels.name'))
                     ->required()
                     ->maxLength(255),
             ]);
@@ -57,16 +57,17 @@ class PeriodResource extends Resource
                 // --- CAMBIO AQUÍ ---
                 // Agrega la columna 'code' a la tabla
                 TextColumn::make('code')
+                    ->label(__('filament.labels.code'))
                     ->searchable()
                     ->sortable(), // Permite ordenar por código
 
                 TextColumn::make('name')
-                    ->label('Nombre') // Etiqueta opcional
+                    ->label(__('filament.labels.name'))
                     ->searchable(),
                 
                 // Opcional: muestra cuándo se creó
                 TextColumn::make('created_at')
-                    ->label('Fecha de Creación')
+                    ->label(__('filament.labels.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true), // Oculta por defecto

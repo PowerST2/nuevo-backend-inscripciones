@@ -36,16 +36,22 @@ class UbigeoResource extends Resource
         return $schema
             ->components([
                 TextInput::make('code')
+                    ->label(__('filament.labels.code'))
                     ->required(),
                 TextInput::make('description')
+                    ->label(__('filament.labels.description'))
                     ->required(),
                 TextInput::make('department')
+                    ->label(__('filament.labels.department'))
                     ->required(),
                 TextInput::make('province')
+                    ->label(__('filament.labels.province'))
                     ->required(),
                 TextInput::make('district')
+                    ->label(__('filament.labels.district'))
                     ->required(),
-                TextInput::make('code_reniec'),
+                TextInput::make('code_reniec')
+                    ->label(__('filament.labels.code_reniec')),
             ]);
     }
 
@@ -53,17 +59,25 @@ class UbigeoResource extends Resource
     {
         return $schema
             ->components([
-                TextEntry::make('code'),
-                TextEntry::make('description'),
-                TextEntry::make('department'),
-                TextEntry::make('province'),
-                TextEntry::make('district'),
+                TextEntry::make('code')
+                    ->label(__('filament.labels.code')),
+                TextEntry::make('description')
+                    ->label(__('filament.labels.description')),
+                TextEntry::make('department')
+                    ->label(__('filament.labels.department')),
+                TextEntry::make('province')
+                    ->label(__('filament.labels.province')),
+                TextEntry::make('district')
+                    ->label(__('filament.labels.district')),
                 TextEntry::make('code_reniec')
+                    ->label(__('filament.labels.code_reniec'))
                     ->placeholder('-'),
                 TextEntry::make('created_at')
+                    ->label(__('filament.labels.created_at'))
                     ->dateTime()
                     ->placeholder('-'),
                 TextEntry::make('updated_at')
+                    ->label(__('filament.labels.updated_at'))
                     ->dateTime()
                     ->placeholder('-'),
             ]);
@@ -75,22 +89,30 @@ class UbigeoResource extends Resource
             ->recordTitleAttribute('name')
             ->columns([
                 TextColumn::make('code')
+                    ->label(__('filament.labels.code'))
                     ->searchable(),
                 TextColumn::make('description')
+                    ->label(__('filament.labels.description'))
                     ->searchable(),
                 TextColumn::make('department')
+                    ->label(__('filament.labels.department'))
                     ->searchable(),
                 TextColumn::make('province')
+                    ->label(__('filament.labels.province'))
                     ->searchable(),
                 TextColumn::make('district')
+                    ->label(__('filament.labels.district'))
                     ->searchable(),
                 TextColumn::make('code_reniec')
+                    ->label(__('filament.labels.code_reniec'))
                     ->searchable(),
                 TextColumn::make('created_at')
+                    ->label(__('filament.labels.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label(__('filament.labels.updated_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

@@ -12,15 +12,19 @@ class UniversityInfolist
     {
         return $schema
             ->components([
-                TextEntry::make('code'),
-                TextEntry::make('name'),
-                TextEntry::make('management'),
+                TextEntry::make('code')
+                    ->label(__('filament.labels.code')),
+                TextEntry::make('name')
+                    ->label(__('filament.labels.name')),
+                TextEntry::make('management')
+                    ->label(__('filament.labels.management')),
                 TextEntry::make('ubigeo.id')
-                    ->label('Ubigeo')
+                    ->label(__('filament.labels.ubigeo'))
                     ->placeholder('-'),
                 TextEntry::make('country.name')
-                    ->label('Country'),
+                    ->label(__('filament.labels.country')),
                 IconEntry::make('activo')
+                    ->label(__('filament.labels.active'))
                     ->boolean(),
             ]);
     }

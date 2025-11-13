@@ -37,15 +37,21 @@ class ModalityResource extends Resource
         return $schema
             ->components([
                 TextInput::make('code')
+                    ->label(__('filament.labels.code'))
                     ->required(),
                 TextInput::make('name')
+                    ->label(__('filament.labels.name'))
                     ->required(),
                 TextInput::make('name_regulation')
+                    ->label(__('filament.labels.name_regulation'))
                     ->required(),
-                TextInput::make('description'),
+                TextInput::make('description')
+                    ->label(__('filament.labels.description')),
                 Toggle::make('start_studies')
+                    ->label(__('filament.labels.start_studies'))
                     ->required(),
                 Toggle::make('active')
+                    ->label(__('filament.labels.active'))
                     ->required(),
             ]);
     }
@@ -56,22 +62,30 @@ class ModalityResource extends Resource
             ->recordTitleAttribute('name')
             ->columns([
                 TextColumn::make('code')
+                    ->label(__('filament.labels.code'))
                     ->searchable(),
                 TextColumn::make('name')
+                    ->label(__('filament.labels.name'))
                     ->searchable(),
                 TextColumn::make('name_regulation')
+                    ->label(__('filament.labels.name_regulation'))
                     ->searchable(),
                 TextColumn::make('description')
+                    ->label(__('filament.labels.description'))
                     ->searchable(),
                 IconColumn::make('start_studies')
+                    ->label(__('filament.labels.start_studies'))
                     ->boolean(),
                 IconColumn::make('active')
+                    ->label(__('filament.labels.active'))
                     ->boolean(),
                 TextColumn::make('created_at')
+                    ->label(__('filament.labels.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label(__('filament.labels.updated_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

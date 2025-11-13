@@ -17,24 +17,28 @@ class UniversitiesTable
         return $table
             ->columns([
                 TextColumn::make('code')
+                    ->label(__('filament.labels.code'))
                     ->searchable(),
                 TextColumn::make('name')
+                    ->label(__('filament.labels.name'))
                     ->searchable(),
                 TextColumn::make('management')
+                    ->label(__('filament.labels.management'))
                     ->searchable(),
                 TextColumn::make('ubigeo.description')
-                    ->label('Ubigeo')
+                    ->label(__('filament.labels.ubigeo'))
                     ->searchable(),
                 TextColumn::make('country.name')
+                    ->label(__('filament.labels.country'))
                     ->searchable(),
                 IconColumn::make('active')
+                    ->label(__('filament.labels.active'))
                     ->boolean(),
             ])
             ->filters([
                 //
             ])
             ->recordActions([
-                ViewAction::make(),
                 EditAction::make(),
             ])
             ->toolbarActions([

@@ -17,26 +17,36 @@ class SchoolForm
         return $schema
             ->components([
                 TextInput::make('modular_code')
+                    ->label(__('filament.labels.modular_code'))
                     ->required(),
                 TextInput::make('annexed')
+                    ->label(__('filament.labels.annexed'))
                     ->numeric(),
-                TextInput::make('level'),
-                TextInput::make('nombre'),
-                TextInput::make('management_minedu'),
+                TextInput::make('level')
+                    ->label(__('filament.labels.level')),
+                TextInput::make('nombre')
+                    ->label(__('filament.labels.nombre')),
+                TextInput::make('management_minedu')
+                    ->label(__('filament.labels.management_minedu')),
                 Select::make('management')
+                    ->label(__('filament.labels.management'))
                     ->options([
                         'Privada' => 'Privada',
                         'Pública' => 'Pública',
                     ])
                     ->required(),
-                TextInput::make('director'),
-                TextInput::make('address'),
+                TextInput::make('director')
+                    ->label(__('filament.labels.director')),
+                TextInput::make('address')
+                    ->label(__('filament.labels.address')),
                 TextInput::make('phones')
+                    ->label(__('filament.labels.phones'))
                     ->tel(),
                 TextInput::make('email')
-                    ->label('Email address')
+                    ->label(__('filament.labels.email_address'))
                     ->email(),
                 Select::make('country_id')
+                    ->label(__('filament.labels.country_id'))
                     ->relationship('country', 'name')
                     ->required()
                     ->searchable()
@@ -48,8 +58,8 @@ class SchoolForm
                         $set('ubigeo_id', null);
                     }),
                 Select::make('department')
-                    ->label('Departamento')
-                    ->placeholder('Selecciona un departamento')
+                    ->label(__('filament.labels.department'))
+                    ->placeholder(__('filament.labels.select_department'))
                     ->options(function () {
                         return Ubigeo::distinct()
                             ->pluck('department', 'department')
@@ -60,8 +70,8 @@ class SchoolForm
                     ->live()
                     ->afterStateUpdated(fn (callable $set) => $set('province', null)),
                 Select::make('province')
-                    ->label('Provincia')
-                    ->placeholder('Selecciona una provincia')
+                    ->label(__('filament.labels.province'))
+                    ->placeholder(__('filament.labels.select_province'))
                     ->options(function (Get $get) {
                         $department = $get('department');
                         if (!$department) {
@@ -77,8 +87,8 @@ class SchoolForm
                     ->live()
                     ->afterStateUpdated(fn (callable $set) => $set('district', null)),
                 Select::make('district')
-                    ->label('Distrito')
-                    ->placeholder('Selecciona un distrito')
+                    ->label(__('filament.labels.district'))
+                    ->placeholder(__('filament.labels.select_district'))
                     ->options(function (Get $get) {
                         $department = $get('department');
                         $province = $get('province');

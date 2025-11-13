@@ -34,8 +34,10 @@ class GenderResource extends Resource
         return $schema
             ->components([
                 TextInput::make('code')
+                    ->label(__('filament.labels.code'))
                     ->required(),
                 TextInput::make('name')
+                    ->label(__('filament.labels.name'))
                     ->required(),
             ]);
     }
@@ -46,14 +48,18 @@ class GenderResource extends Resource
             ->recordTitleAttribute('name')
             ->columns([
                 TextColumn::make('code')
+                    ->label(__('filament.labels.code'))
                     ->searchable(),
                 TextColumn::make('name')
+                    ->label(__('filament.labels.name'))
                     ->searchable(),
                 TextColumn::make('created_at')
+                    ->label(__('filament.labels.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label(__('filament.labels.updated_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

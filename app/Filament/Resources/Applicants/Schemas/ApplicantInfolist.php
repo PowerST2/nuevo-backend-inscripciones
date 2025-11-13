@@ -13,109 +13,132 @@ class ApplicantInfolist
         return $schema
             ->components([
                 TextEntry::make('period.name')
-                    ->label('Period')
+                    ->label(__('filament.labels.period'))
                     ->placeholder('-'),
                 TextEntry::make('code')
+                    ->label(__('filament.labels.code'))
                     ->placeholder('-'),
                 TextEntry::make('code_cepre')
+                    ->label(__('filament.labels.code_cepre'))
                     ->placeholder('-'),
                 TextEntry::make('paternal_surname')
+                    ->label(__('filament.labels.paternal_surname'))
                     ->placeholder('-'),
                 TextEntry::make('maternal_surname')
+                    ->label(__('filament.labels.maternal_surname'))
                     ->placeholder('-'),
                 TextEntry::make('names')
+                    ->label(__('filament.labels.names'))
                     ->placeholder('-'),
                 TextEntry::make('documentType.name')
-                    ->label('Document type')
+                    ->label(__('filament.labels.document_type'))
                     ->placeholder('-'),
                 TextEntry::make('document_number')
+                    ->label(__('filament.labels.document_number'))
                     ->placeholder('-'),
                 TextEntry::make('email')
-                    ->label('Email address')
+                    ->label(__('filament.labels.email_address'))
                     ->placeholder('-'),
                 TextEntry::make('size')
+                    ->label(__('filament.labels.size'))
                     ->numeric()
                     ->placeholder('-'),
                 TextEntry::make('weight')
+                    ->label(__('filament.labels.weight'))
                     ->numeric()
                     ->placeholder('-'),
                 TextEntry::make('gender.name')
-                    ->label('Gender')
+                    ->label(__('filament.labels.gender'))
                     ->placeholder('-'),
                 TextEntry::make('cellular_phone')
+                    ->label(__('filament.labels.cellular_phone'))
                     ->placeholder('-'),
                 TextEntry::make('phone')
+                    ->label(__('filament.labels.phone'))
                     ->placeholder('-'),
                 TextEntry::make('other_phone')
+                    ->label(__('filament.labels.other_phone'))
                     ->placeholder('-'),
                 TextEntry::make('ubigeo.id')
-                    ->label('Ubigeo')
+                    ->label(__('filament.labels.ubigeo'))
                     ->placeholder('-'),
                 TextEntry::make('direction')
+                    ->label(__('filament.labels.direction'))
                     ->placeholder('-'),
                 TextEntry::make('school.id')
-                    ->label('School'),
+                    ->label(__('filament.labels.school')),
                 TextEntry::make('university.name')
-                    ->label('University')
+                    ->label(__('filament.labels.university'))
                     ->placeholder('-'),
                 TextEntry::make('site.name')
-                    ->label('Site')
+                    ->label(__('filament.labels.site'))
                     ->placeholder('-'),
                 TextEntry::make('start_study')
+                    ->label(__('filament.labels.start_study'))
                     ->numeric()
                     ->placeholder('-'),
                 TextEntry::make('end_study')
+                    ->label(__('filament.labels.end_study'))
                     ->numeric()
                     ->placeholder('-'),
                 TextEntry::make('date_birth')
+                    ->label(__('filament.labels.date_birth'))
                     ->date()
                     ->placeholder('-'),
                 TextEntry::make('countryBirth.name')
-                    ->label('Country birth')
+                    ->label(__('filament.labels.country_birth'))
                     ->placeholder('-'),
                 TextEntry::make('ubigeo_birth_id')
+                    ->label(__('filament.labels.ubigeo_birth_id'))
                     ->numeric()
                     ->placeholder('-'),
                 TextEntry::make('modality1.name')
-                    ->label('Modality1')
+                    ->label(__('filament.labels.modality1'))
                     ->placeholder('-'),
                 TextEntry::make('modality2.name')
-                    ->label('Modality2')
+                    ->label(__('filament.labels.modality2'))
                     ->placeholder('-'),
                 TextEntry::make('speciality1.name')
-                    ->label('Speciality1')
+                    ->label(__('filament.labels.speciality1'))
                     ->placeholder('-'),
                 TextEntry::make('speciality2.name')
-                    ->label('Speciality2')
+                    ->label(__('filament.labels.speciality2'))
                     ->placeholder('-'),
                 TextEntry::make('speciality3.name')
-                    ->label('Speciality3')
+                    ->label(__('filament.labels.speciality3'))
                     ->placeholder('-'),
                 TextEntry::make('speciality4.name')
-                    ->label('Speciality4')
+                    ->label(__('filament.labels.speciality4'))
                     ->placeholder('-'),
                 TextEntry::make('speciality5.name')
-                    ->label('Speciality5')
+                    ->label(__('filament.labels.speciality5'))
                     ->placeholder('-'),
                 TextEntry::make('speciality6.name')
-                    ->label('Speciality6')
+                    ->label(__('filament.labels.speciality6'))
                     ->placeholder('-'),
                 TextEntry::make('classroom1_id')
+                    ->label(__('filament.labels.classroom1'))
                     ->placeholder('-'),
                 TextEntry::make('classroom2_id')
+                    ->label(__('filament.labels.classroom2'))
                     ->placeholder('-'),
                 TextEntry::make('classroom3_id')
+                    ->label(__('filament.labels.classroom3'))
                     ->placeholder('-'),
                 TextEntry::make('classroom_voca_id')
+                    ->label(__('filament.labels.classroom_voca'))
                     ->placeholder('-'),
                 IconEntry::make('annulled')
+                    ->label(__('filament.labels.annulled'))
                     ->boolean(),
                 TextEntry::make('user.name')
-                    ->label('User'),
+                    ->label(__('filament.labels.user')),
                 TextEntry::make('created_at')
+                    ->label(__('filament.labels.created_at'))
                     ->dateTime()
                     ->placeholder('-'),
                 TextEntry::make('updated_at')
+                    ->label(__('filament.labels.updated_at'))
                     ->dateTime()
                     ->placeholder('-'),
             ]);

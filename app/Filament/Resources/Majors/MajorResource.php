@@ -37,13 +37,17 @@ class MajorResource extends Resource
         return $schema
             ->components([
                 TextInput::make('code')
+                    ->label(__('filament.labels.code'))
                     ->required(),
                 TextInput::make('name')
+                    ->label(__('filament.labels.name'))
                     ->required(),
                 TextInput::make('channel')
+                    ->label(__('filament.labels.channel'))
                     ->required()
                     ->numeric(),
                 Select::make('faculty_id')
+                    ->label(__('filament.labels.faculty_id'))
                     ->relationship('faculty', 'name')
                     ->required(),
             ]);
@@ -55,19 +59,25 @@ class MajorResource extends Resource
             ->recordTitleAttribute('name')
             ->columns([
                 TextColumn::make('code')
+                    ->label(__('filament.labels.code'))
                     ->searchable(),
                 TextColumn::make('name')
+                    ->label(__('filament.labels.name'))
                     ->searchable(),
                 TextColumn::make('channel')
+                    ->label(__('filament.labels.channel'))
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('faculty.name')
+                    ->label(__('filament.labels.faculty'))
                     ->searchable(),
                 TextColumn::make('created_at')
+                    ->label(__('filament.labels.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label(__('filament.labels.updated_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
