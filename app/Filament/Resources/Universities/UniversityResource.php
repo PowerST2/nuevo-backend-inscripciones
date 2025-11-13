@@ -23,8 +23,8 @@ class UniversityResource extends Resource
     protected static ?string $modelLabel = 'Universidad';
     protected static ?string $pluralModelLabel = 'Universidades';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Configurar';
-    protected static ?int $navigationSort = 3;
+    protected static string | UnitEnum | null $navigationGroup = 'Academico';
+    protected static ?int $navigationSort = 1;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 

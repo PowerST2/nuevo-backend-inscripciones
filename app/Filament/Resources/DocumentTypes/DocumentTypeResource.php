@@ -1,32 +1,32 @@
 <?php
 
-namespace App\Filament\Resources\Majors;
+namespace App\Filament\Resources\DocumentTypes;
 
-use App\Filament\Resources\Majors\Pages\ManageMajors;
-use App\Models\Major;
+use App\Filament\Resources\DocumentTypes\Pages\ManageDocumentTypes;
+use App\Models\DocumentType;
 use BackedEnum;
-use UnitEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use UnitEnum;
 
-class MajorResource extends Resource
+class DocumentTypeResource extends Resource
 {
-    protected static ?string $model = Major::class;
+    protected static ?string $model = DocumentType::class;
+    protected static ?string $modelLabel = 'Tipo de Documento';
+    protected static ?string $pluralModelLabel = 'Tipos de Documentos';
 
-    protected static ?string $modelLabel = 'Especialidad';
-    protected static ?string $pluralModelLabel = 'Especialidades';
-
-    protected static string | UnitEnum | null $navigationGroup = 'Academico';
-    protected static ?int $navigationSort = 2;
+    protected static string | UnitEnum | null $navigationGroup = 'Configuración Basica';
+    protected static ?int $navigationSort = 1;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
@@ -40,11 +40,7 @@ class MajorResource extends Resource
                     ->required(),
                 TextInput::make('name')
                     ->required(),
-                TextInput::make('channel')
-                    ->required()
-                    ->numeric(),
-                Select::make('faculty_id')
-                    ->relationship('faculty', 'name')
+                Toggle::make('active')
                     ->required(),
             ]);
     }
@@ -58,11 +54,8 @@ class MajorResource extends Resource
                     ->searchable(),
                 TextColumn::make('name')
                     ->searchable(),
-                TextColumn::make('channel')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('faculty.name')
-                    ->searchable(),
+                IconColumn::make('active')
+                    ->boolean(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -89,7 +82,7 @@ class MajorResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ManageMajors::route('/'),
+            'index' => ManageDocumentTypes::route('/'),
         ];
     }
 }

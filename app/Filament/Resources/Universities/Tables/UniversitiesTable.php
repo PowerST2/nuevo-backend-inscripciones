@@ -22,14 +22,8 @@ class UniversitiesTable
                     ->searchable(),
                 TextColumn::make('management')
                     ->searchable(),
-                TextColumn::make('ubigeo.department')
-                    ->label('Departamento')
-                    ->searchable(),
-                TextColumn::make('ubigeo.province')
-                    ->label('Provincia')
-                    ->searchable(),
-                TextColumn::make('ubigeo.district')
-                    ->label('Distrito')
+                TextColumn::make('ubigeo.description')
+                    ->label('Ubigeo')
                     ->searchable(),
                 TextColumn::make('country.name')
                     ->searchable(),

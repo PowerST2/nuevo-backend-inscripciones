@@ -1,32 +1,41 @@
 <?php
 
-namespace App\Filament\Resources\Universities\Schemas;
+namespace App\Filament\Resources\Schools\Schemas;
 
 use App\Models\Country;
 use App\Models\Ubigeo;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
-class UniversityForm
+class SchoolForm
 {
     public static function configure(Schema $schema): Schema
     {
         return $schema
             ->components([
-                TextInput::make('code')
+                TextInput::make('modular_code')
                     ->required(),
-                TextInput::make('name')
-                    ->required(),
+                TextInput::make('annexed')
+                    ->numeric(),
+                TextInput::make('level'),
+                TextInput::make('nombre'),
+                TextInput::make('management_minedu'),
                 Select::make('management')
                     ->options([
                         'Privada' => 'Privada',
                         'Pública' => 'Pública',
                     ])
                     ->required(),
+                TextInput::make('director'),
+                TextInput::make('address'),
+                TextInput::make('phones')
+                    ->tel(),
+                TextInput::make('email')
+                    ->label('Email address')
+                    ->email(),
                 Select::make('country_id')
                     ->relationship('country', 'name')
                     ->required()
@@ -102,8 +111,6 @@ class UniversityForm
                         }
                     }),
                 Hidden::make('ubigeo_id'),
-                Toggle::make('active')
-                    ->default(true),
             ]);
     }
 

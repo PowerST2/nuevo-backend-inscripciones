@@ -17,11 +17,16 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class UbigeoResource extends Resource
 {
     protected static ?string $model = Ubigeo::class;
+    protected static ?string $modelLabel = 'Ubigeo';
+    protected static ?string $pluralModelLabel = 'Ubigeos';
 
+    protected static string | UnitEnum | null $navigationGroup = 'Configurar';
+    protected static ?int $navigationSort = 2;
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $recordTitleAttribute = 'name';

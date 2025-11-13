@@ -1,33 +1,30 @@
 <?php
 
-namespace App\Filament\Resources\Majors;
+namespace App\Filament\Resources\Genders;
 
-use App\Filament\Resources\Majors\Pages\ManageMajors;
-use App\Models\Major;
+use App\Filament\Resources\Genders\Pages\ManageGenders;
+use App\Models\Gender;
 use BackedEnum;
-use UnitEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use UnitEnum;
 
-class MajorResource extends Resource
+class GenderResource extends Resource
 {
-    protected static ?string $model = Major::class;
+    protected static ?string $model = Gender::class;
+    protected static ?string $modelLabel = 'Genero';
+    protected static ?string $pluralModelLabel = 'Generos';
 
-    protected static ?string $modelLabel = 'Especialidad';
-    protected static ?string $pluralModelLabel = 'Especialidades';
-
-    protected static string | UnitEnum | null $navigationGroup = 'Academico';
+    protected static string | UnitEnum | null $navigationGroup = 'Configuración Basica';
     protected static ?int $navigationSort = 2;
-
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $recordTitleAttribute = 'name';
@@ -40,12 +37,6 @@ class MajorResource extends Resource
                     ->required(),
                 TextInput::make('name')
                     ->required(),
-                TextInput::make('channel')
-                    ->required()
-                    ->numeric(),
-                Select::make('faculty_id')
-                    ->relationship('faculty', 'name')
-                    ->required(),
             ]);
     }
 
@@ -57,11 +48,6 @@ class MajorResource extends Resource
                 TextColumn::make('code')
                     ->searchable(),
                 TextColumn::make('name')
-                    ->searchable(),
-                TextColumn::make('channel')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('faculty.name')
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()
@@ -89,7 +75,7 @@ class MajorResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ManageMajors::route('/'),
+            'index' => ManageGenders::route('/'),
         ];
     }
 }
