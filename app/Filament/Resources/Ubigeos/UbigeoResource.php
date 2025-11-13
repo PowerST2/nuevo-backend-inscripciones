@@ -25,8 +25,8 @@ class UbigeoResource extends Resource
     protected static ?string $modelLabel = 'Ubigeo';
     protected static ?string $pluralModelLabel = 'Ubigeos';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Configurar';
-    protected static ?int $navigationSort = 2;
+    protected static string | UnitEnum | null $navigationGroup = 'Configuración Basica';
+    protected static ?int $navigationSort = 4;
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $recordTitleAttribute = 'name';

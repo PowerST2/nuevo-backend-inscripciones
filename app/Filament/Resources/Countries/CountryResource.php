@@ -1,33 +1,30 @@
 <?php
 
-namespace App\Filament\Resources\Majors;
+namespace App\Filament\Resources\Countries;
 
-use App\Filament\Resources\Majors\Pages\ManageMajors;
-use App\Models\Major;
+use App\Filament\Resources\Countries\Pages\ManageCountries;
+use App\Models\Country;
 use BackedEnum;
-use UnitEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use UnitEnum;
 
-class MajorResource extends Resource
+class CountryResource extends Resource
 {
-    protected static ?string $model = Major::class;
+    protected static ?string $model = Country::class;
+    protected static ?string $modelLabel = 'País';
+    protected static ?string $pluralModelLabel = 'Países';
 
-    protected static ?string $modelLabel = 'Especialidad';
-    protected static ?string $pluralModelLabel = 'Especialidades';
-
-    protected static string | UnitEnum | null $navigationGroup = 'Academico';
-    protected static ?int $navigationSort = 4;
-
+    protected static string | UnitEnum | null $navigationGroup = 'Configuración Basica';
+    protected static ?int $navigationSort = 5;
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $recordTitleAttribute = 'name';
@@ -42,14 +39,6 @@ class MajorResource extends Resource
                 TextInput::make('name')
                     ->label(__('filament.labels.name'))
                     ->required(),
-                TextInput::make('channel')
-                    ->label(__('filament.labels.channel'))
-                    ->required()
-                    ->numeric(),
-                Select::make('faculty_id')
-                    ->label(__('filament.labels.faculty_id'))
-                    ->relationship('faculty', 'name')
-                    ->required(),
             ]);
     }
 
@@ -63,13 +52,6 @@ class MajorResource extends Resource
                     ->searchable(),
                 TextColumn::make('name')
                     ->label(__('filament.labels.name'))
-                    ->searchable(),
-                TextColumn::make('channel')
-                    ->label(__('filament.labels.channel'))
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('faculty.name')
-                    ->label(__('filament.labels.faculty'))
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->label(__('filament.labels.created_at'))
@@ -99,7 +81,7 @@ class MajorResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ManageMajors::route('/'),
+            'index' => ManageCountries::route('/'),
         ];
     }
 }

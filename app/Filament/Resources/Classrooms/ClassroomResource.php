@@ -22,7 +22,7 @@ class ClassroomResource extends Resource
     protected static ?string $pluralModelLabel = 'Aulas';
 
     protected static string | UnitEnum | null $navigationGroup = 'Academico';
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 3;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 

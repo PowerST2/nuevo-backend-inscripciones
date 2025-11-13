@@ -13,6 +13,7 @@ class Period extends Model
     protected $fillable = [
         'code',
         'name',
+        'active',
     ];
 
     public function scheduleActivities(): HasMany

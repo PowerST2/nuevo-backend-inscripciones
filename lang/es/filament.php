@@ -141,11 +141,35 @@ return [
         'name_regulation' => 'Nombre Regulatorio',
         'start_studies' => 'Inicio de Estudios',
         
+        // Faculties
+        'faculty' => 'Facultad',
+        'faculties' => 'Facultades',
+        'acronym' => 'Acrónimo',
+        
+        // Countries
+        'countries' => 'Países',
+        
+        // Sites
+        'sites' => 'Sedes',
+        'local' => 'Local',
+        
+        // Users
+        'users' => 'Usuarios',
+        'email' => 'Correo Electrónico',
+        'password' => 'Contraseña',
+        'role' => 'Rol',
+        
         // Placeholders
         'select_department' => 'Selecciona un departamento',
         'select_province' => 'Selecciona una provincia',
         'select_district' => 'Selecciona un distrito',
         'select_option' => 'Selecciona una opción',
+    ],
+
+    'navigation_groups' => [
+        'Root' => 'Root',
+        'Configuración Basica' => 'Configuración Básica',
+        'Academico' => 'Académico',
     ],
 
     'messages' => [

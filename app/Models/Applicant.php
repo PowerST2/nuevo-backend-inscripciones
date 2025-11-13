@@ -37,6 +37,7 @@ class Applicant extends Model
         'date_birth',
         'country_birth_id',
         'ubigeo_birth_id',
+        'faculties_id',
         'modality1_id',
         'modality2_id',
         'speciality1_id',
