@@ -38,6 +38,7 @@ return new class extends Migration
             $table->date('date_birth')->nullable();
             $table->foreignId('country_birth_id')->nullable()->constrained('countries')->onDelete('cascade');
             $table->foreignId('ubigeo_birth_id')->nullable()->constrained('ubigeos')->onDelete('cascade');
+            $table->foreignId('faculties_id')->nullable()->constrained('faculties')->onDelete('cascade');
             $table->foreignId('modality1_id')->nullable()->constrained('modalities')->onDelete('cascade');
             $table->foreignId('modality2_id')->nullable()->constrained('modalities')->onDelete('cascade');
             $table->foreignId('speciality1_id')->nullable()->constrained('majors')->onDelete('cascade');

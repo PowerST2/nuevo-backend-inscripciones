@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('modality_id')->constrained('modalities')->onDelete('cascade');
             $table->string('document_name', 255);
-            $table->string('document', 255);
+            $table->string('path_document', 255);
+            $table->boolean('active')->default(true);
             $table->timestamps();
         });
     }

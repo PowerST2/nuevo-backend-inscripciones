@@ -17,9 +17,9 @@ return new class extends Migration
             $table->string('name',100)->index();
             $table->string('name_regulation',100)->index();
             $table->string('description')->nullable();
-            $table->string('previous_modality',100)->nullable();
             $table->boolean('start_studies')->default(true);
             $table->boolean('active')->default(true);
+            $table->timestamps();
         });
     }
 

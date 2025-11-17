@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('name', 50);
             $table->integer('channel');
             $table->foreignId('faculty_id')->constrained('faculties')->onDelete('cascade');
+            $table->timestamps();
         });
     }
 

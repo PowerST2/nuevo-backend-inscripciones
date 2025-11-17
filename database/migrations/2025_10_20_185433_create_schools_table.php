@@ -13,17 +13,19 @@ return new class extends Migration
     {
         Schema::create('schools', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 10)->index();
+            $table->string('modular_code', 10)->index();
             $table->integer('annexed')->nullable();
             $table->string('level', 100)->nullable();
             $table->string('nombre', 100)->index()->nullable();
             $table->string('management_minedu', 100)->nullable();
             $table->string('management', 100)->index();
             $table->string('director')->nullable();
-            $table->string('direction')->nullable();
+            $table->string('address')->nullable();
+            $table->string('phones', 15)->nullable();
+            $table->string('email', 100)->nullable();
             $table->foreignId('ubigeo_id')->nullable()->references('id')->on('ubigeos');
-            $table->foreignId('pais_id')->index()->nullable()->references('id')->on('countries');
-            $table->unique(['code', 'annexed']);
+            $table->foreignId('country_id')->index()->nullable()->references('id')->on('countries');
+            $table->unique(['modular_code', 'annexed']);
             $table->timestamps();
         });
     }

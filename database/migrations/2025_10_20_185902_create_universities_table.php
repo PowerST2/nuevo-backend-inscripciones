@@ -18,7 +18,8 @@ return new class extends Migration
             $table->string('management', 100);
             $table->foreignId('ubigeo_id')->nullable()->references('id')->on('ubigeos');
             $table->foreignId('country_id')->index()->references('id')->on('countries');
-            $table->boolean('activo')->default(true);
+            $table->boolean('active')->default(true);
+            $table->timestamps();
         });
     }
 

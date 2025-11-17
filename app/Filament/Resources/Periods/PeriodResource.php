@@ -10,22 +10,25 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use UnitEnum;
+
 class PeriodResource extends Resource
 {
     protected static ?string $model = Period::class;
     protected static ?string $modelLabel = 'Periodo';
     protected static ?string $pluralModelLabel = 'Periodos';
 
-    protected static string | UnitEnum | null $navigationGroup = 'Configurar';
-    protected static ?int $navigationSort = 1;
+    protected static string | UnitEnum | null $navigationGroup = 'Configuración Basica';
+    protected static ?int $navigationSort = 3;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::Calendar;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -33,9 +36,12 @@ class PeriodResource extends Resource
     {
         return $schema
             ->components([
+                TextInput::make('code')
+                    ->required(),
                 TextInput::make('name')
-                    ->required()
-                    ->maxLength(255),
+                    ->required(),
+                Toggle::make('active')
+                    ->required(),
             ]);
     }
 
@@ -44,8 +50,20 @@ class PeriodResource extends Resource
         return $table
             ->recordTitleAttribute('name')
             ->columns([
+                TextColumn::make('code')
+                    ->searchable(),
                 TextColumn::make('name')
                     ->searchable(),
+                IconColumn::make('active')
+                    ->boolean(),
+                TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //

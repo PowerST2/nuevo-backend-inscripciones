@@ -7,6 +7,7 @@ use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationGroup;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -41,6 +42,20 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 AccountWidget::class,
                 FilamentInfoWidget::class,
+            ])
+            ->navigationGroups([
+                NavigationGroup::make()
+                    ->label('Root')
+                    ->collapsed(true)
+                    ->collapsible(),
+                NavigationGroup::make()
+                    ->label(__('filament.navigation_groups.Configuración Basica'))
+                    ->collapsed(true)
+                    ->collapsible(),
+                NavigationGroup::make()
+                    ->label(__('filament.navigation_groups.Academico'))
+                    ->collapsed(true)
+                    ->collapsible(),
             ])
             ->middleware([
                 EncryptCookies::class,
