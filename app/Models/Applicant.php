@@ -146,6 +146,26 @@ class Applicant extends Model
         return $this->belongsTo(Major::class, 'speciality6_id');
     }
 
+    public function classroom1(): BelongsTo
+    {
+        return $this->belongsTo(Classroom::class, 'classroom1_id');
+    }
+
+    public function classroom2(): BelongsTo
+    {
+        return $this->belongsTo(Classroom::class, 'classroom2_id');
+    }
+
+    public function classroom3(): BelongsTo
+    {
+        return $this->belongsTo(Classroom::class, 'classroom3_id');
+    }
+
+    public function classroomVoca(): BelongsTo
+    {
+        return $this->belongsTo(Classroom::class, 'classroom_voca_id');
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

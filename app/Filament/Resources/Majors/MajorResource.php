@@ -28,7 +28,7 @@ class MajorResource extends Resource
     protected static string | UnitEnum | null $navigationGroup = 'Academico';
     protected static ?int $navigationSort = 4;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBookOpen;
 
     protected static ?string $recordTitleAttribute = 'name';
 
