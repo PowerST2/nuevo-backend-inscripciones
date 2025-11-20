@@ -16,9 +16,6 @@ class ApplicantsTable
     {
         return $table
             ->columns([
-                TextColumn::make('code')
-                    ->label('Código')
-                    ->searchable(),
                 TextColumn::make('paternal_surname')
                     ->label('Apellido Paterno')
                     ->searchable(),
