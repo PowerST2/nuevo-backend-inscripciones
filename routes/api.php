@@ -1,8 +1,5 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\PeriodController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,16 +13,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Public routes
-Route::post('/auth/register', [AuthController::class, 'register']);
-Route::post('/auth/login', [AuthController::class, 'login']);
+// Auth routes
+require __DIR__.'/auth.php';
 
-// Protected routes (require Sanctum token)
-Route::middleware(['auth:sanctum'])->group(function () {
-    // Auth routes
-    Route::post('/auth/logout', [AuthController::class, 'logout']);
-    Route::get('/auth/profile', [AuthController::class, 'profile']);
+// Schedule Activity routes
+require __DIR__.'/scheduleactivity.php';
 
-    // Period routes
-    Route::apiResource('periods', PeriodController::class);
-});
+// Period routes
+require __DIR__.'/period.php';

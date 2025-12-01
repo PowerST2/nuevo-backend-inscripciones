@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('schedule_activities', function (Blueprint $table) {
+        Schema::create('system_documents', function (Blueprint $table) {
             $table->id();
-            $table->string('code')->unique();
-            $table->string('name');
-            $table->dateTime('start_time');
-            $table->dateTime('end_time');
+            $table->string('name')->unique();
+            $table->string('path')->nullable();
+            $table->string('type');
             $table->boolean('active')->default(true);
-            $table->foreignId('period_id')->constrained('periods')->onDelete('cascade');
+            $table->boolean('virtual')->default(false);
+            $table->text('text')->nullable();
             $table->timestamps();
         });
     }
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('schedule_activities');
+        Schema::dropIfExists('system_documents');
     }
 };

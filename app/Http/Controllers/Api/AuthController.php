@@ -3,80 +3,111 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\User;
+use App\Traits\ScheduleActivityTrait;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
+    use ScheduleActivityTrait;
+
     /**
      * Register a new user
      */
     public function register(Request $request)
     {
+        // Verificar si la inscripción está abierta
+        if (!$this->isRegistrationOpen()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Las inscripciones no están abiertas en este momento',
+                'registration_status' => $this->getRegistrationStatus(),
+            ], Response::HTTP_FORBIDDEN);
+        }
+
+        // Validar datos
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'confirmed', Password::min(8)],
         ]);
 
+        // Crear usuario
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
         ]);
 
+        // Generar token
+        $token = $user->createToken('auth-token')->plainTextToken;
+
+        event(new Registered($user));
+
         return response()->json([
+            'status' => 'success',
             'message' => 'Usuario registrado exitosamente',
             'user' => $user,
-            'token' => $user->createToken('auth_token')->plainTextToken,
+            'token' => $token,
+            'active_schedule' => $this->getActiveSchedule(),
         ], Response::HTTP_CREATED);
     }
 
     /**
-     * Login user
+     * Login a user
      */
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+        $validated = $request->validate([
+            'email' => ['required', 'string', 'email'],
+            'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $validated['email'])->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['Las credenciales proporcionadas no son correctas.'],
-            ]);
+        if (!$user || !Hash::check($validated['password'], $user->password)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Credenciales inválidas',
+            ], Response::HTTP_UNAUTHORIZED);
         }
 
+        $token = $user->createToken('auth-token')->plainTextToken;
+
         return response()->json([
-            'message' => 'Sesión iniciada exitosamente',
+            'status' => 'success',
+            'message' => 'Login exitoso',
             'user' => $user,
-            'token' => $user->createToken('auth_token')->plainTextToken,
+            'token' => $token,
+            'registration_status' => $this->getRegistrationStatus(),
         ], Response::HTTP_OK);
     }
 
     /**
-     * Logout user
+     * Logout a user
      */
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'Sesión cerrada exitosamente',
+            'status' => 'success',
+            'message' => 'Logout exitoso',
         ], Response::HTTP_OK);
     }
 
     /**
-     * Get authenticated user
+     * Get user profile
      */
     public function profile(Request $request)
     {
         return response()->json([
+            'status' => 'success',
+            'message' => 'Perfil obtenido exitosamente',
             'user' => $request->user(),
         ], Response::HTTP_OK);
     }
