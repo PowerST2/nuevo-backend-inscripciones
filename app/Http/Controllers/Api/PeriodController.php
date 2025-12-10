@@ -15,13 +15,12 @@ class PeriodController extends Controller
      */
     public function index()
     {
-        $periods = $this->getPeriods();
+        $periods = $this->getActivePeriod();
         
         return response()->json([
             'status' => 'success',
             'message' => 'Períodos obtenidos exitosamente',
             'data' => $periods,
-            'count' => $periods->count(),
         ], Response::HTTP_OK);
     }
 

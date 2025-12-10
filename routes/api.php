@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 require __DIR__.'/auth.php';
 
 // Schedule Activity routes
-require __DIR__.'/scheduleactivity.php';
+require __DIR__.'/admissions/scheduleactivity.php';
 
 // Period routes
-require __DIR__.'/period.php';
+require __DIR__.'/admissions/period.php';

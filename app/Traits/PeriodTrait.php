@@ -6,11 +6,11 @@ use App\Models\Period;
 trait PeriodTrait
 {
     /**
-     * Get all active periods
+     * Get all active periods (only id and name)
      */
     public function getPeriods()
     {
-        return Period::where('active', true)->get();
+        return Period::where('active', true)->select('id', 'name')->get();
     }
 
     /**
@@ -18,6 +18,6 @@ trait PeriodTrait
      */
     public function getActivePeriod()
     {
-        return Period::where('active', true)->first();
+        return Period::where('active', true)->select('id', 'name')->first();
     }
 }
