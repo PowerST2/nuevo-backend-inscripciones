@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('system_documents', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
+            $table->string('code')->unique();
             $table->string('path')->nullable();
             $table->string('type');
             $table->boolean('active')->default(true);

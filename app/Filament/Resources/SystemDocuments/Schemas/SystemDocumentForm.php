@@ -17,13 +17,15 @@ class SystemDocumentForm
             ->components([
                 TextInput::make('name')
                     ->required()
+                    ->unique(ignoreRecord: true)
                     ->label('Nombre del Documento')
-                    ->placeholder('Ej: documento_importante'),
+                    ->placeholder('Ej: contrato, reglamento, ficha'),
                 FileUpload::make('path')
                     ->label('Seleccionar Archivo')
-                    ->nullable()
+                    ->disk('public')
                     ->directory('documents')
-                    ->storeFileNamesIn('original_filename')
+                    ->visibility('public')
+                    ->preserveFilenames()
                     ->previewable(true)
                     ->downloadable(true)
                     ->openable(true)
@@ -38,7 +40,7 @@ class SystemDocumentForm
                         'image/gif',
                         'text/plain',
                     ])
-                    ->maxSize(10240) // 10MB
+                    ->maxSize(10240)
                     ->hint('Máximo 10MB. Formatos: PDF, DOC, DOCX, XLS, XLSX, PNG, JPG, GIF, TXT'),
                 TextInput::make('type')
                     ->required()

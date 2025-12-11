@@ -22,8 +22,8 @@ use UnitEnum;
 class DocumentTypeResource extends Resource
 {
     protected static ?string $model = DocumentType::class;
-    protected static ?string $modelLabel = 'Tipo de Documento';
-    protected static ?string $pluralModelLabel = 'Tipos de Documentos';
+    protected static ?string $modelLabel = 'Tipo Documento de Identidad';
+    protected static ?string $pluralModelLabel = 'Tipo Documentos de Identidad';
 
     protected static string | UnitEnum | null $navigationGroup = 'Configuración Basica';
     protected static ?int $navigationSort = 1;

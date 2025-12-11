@@ -17,11 +17,16 @@ class ScheduleActivityController extends Controller
      */
     public function index(Request $request)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string'],
-        ]);
+        $name = $request->input('name');
 
-        $isActive = $this->isActivityActive($validated['name']);
+        if (!$name) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'El campo name es requerido',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $isActive = $this->isActivityActive($name);
 
         return response()->json([
             'status' => 'success',

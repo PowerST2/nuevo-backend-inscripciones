@@ -21,3 +21,6 @@ require __DIR__.'/admissions/scheduleactivity.php';
 
 // Period routes
 require __DIR__.'/admissions/period.php';
+
+// System Document routes
+require __DIR__.'/admissions/systemdocument.php';
