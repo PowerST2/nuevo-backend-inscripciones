@@ -24,3 +24,9 @@ require __DIR__.'/admissions/period.php';
 
 // System Document routes
 require __DIR__.'/admissions/systemdocument.php';
+
+// Modality Document routes
+require __DIR__.'/admissions/modalitydocument.php';
+
+// Exam Simulation routes
+require __DIR__.'/admissions/examsimulation.php';

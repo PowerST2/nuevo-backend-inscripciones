@@ -13,10 +13,16 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class SystemDocumentResource extends Resource
 {
     protected static ?string $model = SystemDocument::class;
+    protected static ?string $modelLabel = 'Documento de Sistema';
+    protected static ?string $pluralModelLabel = 'Documentos de Sistema';
+
+    protected static string | UnitEnum | null $navigationGroup = 'Documentos';
+    protected static ?int $navigationSort = 1;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
