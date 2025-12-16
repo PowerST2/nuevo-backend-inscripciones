@@ -9,68 +9,89 @@ class SimulationProcess extends Model
 {
     use HasFactory;
 
+    // Desactivamos created_at y updated_at
+    public $timestamps = false;
+
     protected $fillable = [
         'simulation_applicant_id',
-        'pre_registration',
-        'payment',
-        'data_confirmation',
-        'registration',
+        'pre_registration_at',
+        'payment_at',
+        'data_confirmation_at',
+        'registration_at',
     ];
 
     protected $casts = [
-        'pre_registration' => 'boolean',
-        'payment' => 'boolean',
-        'data_confirmation' => 'boolean',
-        'registration' => 'boolean',
+        'pre_registration_at' => 'datetime',
+        'payment_at' => 'datetime',
+        'data_confirmation_at' => 'datetime',
+        'registration_at' => 'datetime',
     ];
 
-    /**
-     * Relación con el aplicante al simulacro
-     */
     public function simulationApplicant()
     {
         return $this->belongsTo(SimulationApplicant::class);
     }
 
-    /**
-     * Verificar si el postulante puede editar sus datos
-     * Solo puede editar si no ha confirmado sus datos
-     */
     public function canEditData(): bool
     {
-        return !$this->data_confirmation;
+        return is_null($this->data_confirmation_at);
     }
 
-    /**
-     * Verificar si el postulante completó el pago
-     */
     public function hasPaid(): bool
     {
-        return $this->payment;
+        return !is_null($this->payment_at);
     }
 
-    /**
-     * Confirmar datos del postulante
-     * Esto también marca la inscripción como completada
-     */
     public function confirmData(): bool
     {
-        // Solo puede confirmar si ya realizó el pago
-        if (!$this->payment) {
+        if (is_null($this->payment_at)) {
             return false;
         }
 
-        $this->data_confirmation = true;
-        $this->registration = true;
+        // Forzamos hora de Lima (UTC-5)
+        $now = now('America/Lima');
+
+        // Solo confirma datos, NO completa registration
+        $this->data_confirmation_at = $now;
+        
         return $this->save();
     }
 
     /**
-     * Marcar el pago como realizado
+     * Completar inscripción - paso final cuando el postulante hace clic
      */
+    public function completeRegistration(): bool
+    {
+        // Verificar que haya pagado y confirmado datos
+        if (is_null($this->payment_at) || is_null($this->data_confirmation_at)) {
+            return false;
+        }
+
+        // Forzamos hora de Lima (UTC-5)
+        $this->registration_at = now('America/Lima');
+        
+        return $this->save();
+    }
+
     public function markPaymentComplete(): bool
     {
-        $this->payment = true;
-        return $this->save();
+        if (is_null($this->payment_at)) {
+            // Forzamos hora de Lima (UTC-5)
+            $this->payment_at = now('America/Lima');
+            return $this->save();
+        }
+        
+        return true;
+    }
+
+    /**
+     * Verificar si todos los pasos están completados
+     */
+    public function isComplete(): bool
+    {
+        return !is_null($this->pre_registration_at)
+            && !is_null($this->payment_at)
+            && !is_null($this->data_confirmation_at)
+            && !is_null($this->registration_at);
     }
 }

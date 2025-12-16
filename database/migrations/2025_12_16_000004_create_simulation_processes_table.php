@@ -11,18 +11,20 @@ return new class extends Migration
         Schema::create('simulation_processes', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('simulation_applicant_id');
-            $table->boolean('pre_registration')->default(false);
-            $table->boolean('payment')->default(false);
-            $table->boolean('data_confirmation')->default(false);
-            $table->boolean('registration')->default(false);
-            $table->timestamps();
+            
+            // Usamos datetime para que guarde la hora literal (UTC-5) sin conversiones
+            $table->dateTime('pre_registration_at')->nullable();
+            $table->dateTime('payment_at')->nullable();
+            $table->dateTime('data_confirmation_at')->nullable();
+            $table->dateTime('registration_at')->nullable();
+            
+            // NOTA: Se eliminó $table->timestamps(); por tu solicitud
 
             $table->foreign('simulation_applicant_id')
                 ->references('id')
                 ->on('simulation_applicants')
                 ->onDelete('cascade');
 
-            // Un applicant solo puede tener un proceso
             $table->unique('simulation_applicant_id');
         });
     }

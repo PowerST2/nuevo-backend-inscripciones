@@ -8,7 +8,6 @@ class SimulationProcessObserver
 {
     /**
      * Handle the SimulationProcess "updated" event.
-     * Genera el código cuando todos los campos del proceso son true
      */
     public function updated(SimulationProcess $simulationProcess): void
     {
@@ -16,16 +15,17 @@ class SimulationProcessObserver
     }
 
     /**
-     * Verifica si todos los campos del proceso son true y genera el código
+     * Verifica si todos los campos tienen fecha asignada y genera el código
      */
     private function checkAndGenerateCode(SimulationProcess $simulationProcess): void
     {
-        // Verificar si todos los campos son true
+        // Verificar si todos los campos tienen valor (no son nulos)
+        // En PHP, un objeto Carbon (fecha) se evalúa como true, y null como false.
         if (
-            $simulationProcess->pre_registration &&
-            $simulationProcess->payment &&
-            $simulationProcess->data_confirmation &&
-            $simulationProcess->registration
+            $simulationProcess->pre_registration_at &&
+            $simulationProcess->payment_at &&
+            $simulationProcess->data_confirmation_at &&
+            $simulationProcess->registration_at
         ) {
             $applicant = $simulationProcess->simulationApplicant;
 

@@ -4,7 +4,9 @@ namespace App\Traits\Simulation;
 
 use App\Models\Simulation\ExamSimulation;
 use App\Models\Simulation\SimulationApplicant;
+use App\Notifications\Simulation\SimulationCompletedNotification;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Notification;
 
 trait SimulationApplicantTrait
 {
@@ -33,10 +35,10 @@ trait SimulationApplicantTrait
             'email' => $applicant->email,
             'exam_description' => $applicant->examSimulation->description,
             'process' => $applicant->simulationProcess ? [
-                'pre_registration' => $applicant->simulationProcess->pre_registration,
-                'payment' => $applicant->simulationProcess->payment,
-                'data_confirmation' => $applicant->simulationProcess->data_confirmation,
-                'registration' => $applicant->simulationProcess->registration,
+                'pre_registration' => $applicant->simulationProcess->pre_registration_at,
+                'payment' => $applicant->simulationProcess->payment_at,
+                'data_confirmation' => $applicant->simulationProcess->data_confirmation_at,
+                'registration' => $applicant->simulationProcess->registration_at,
             ] : null,
         ];
     }
@@ -101,6 +103,276 @@ trait SimulationApplicantTrait
         return [
             'success' => true,
             'message' => 'Aplicante registrado exitosamente',
+            'data' => $this->searchByDniAndEmail($applicant->dni, $applicant->email),
         ];
+    }
+
+    /**
+     * Actualizar datos del aplicante (solo si puede editar)
+     */
+    public function updateApplicant(string $dni, string $email, array $data): array
+    {
+        $applicant = SimulationApplicant::where('dni', $dni)
+            ->where('email', $email)
+            ->with('simulationProcess')
+            ->first();
+
+        if (!$applicant) {
+            return [
+                'success' => false,
+                'message' => 'Aplicante no encontrado',
+                'data' => null,
+            ];
+        }
+
+        // Verificar si puede editar datos
+        if ($applicant->simulationProcess && !$applicant->simulationProcess->canEditData()) {
+            return [
+                'success' => false,
+                'message' => 'No puede editar sus datos después de confirmarlos',
+                'data' => null,
+            ];
+        }
+
+        // Campos permitidos para actualizar
+        $allowedFields = [
+            'last_name_father',
+            'last_name_mother',
+            'first_names',
+            'phone_mobile',
+            'phone_other',
+        ];
+
+        $updateData = array_intersect_key($data, array_flip($allowedFields));
+        $applicant->update($updateData);
+
+        return [
+            'success' => true,
+            'message' => 'Datos actualizados exitosamente',
+            'data' => $this->searchByDniAndEmail($dni, $email),
+        ];
+    }
+
+    /**
+     * Confirmar datos del aplicante (bloquea edición)
+     */
+    public function confirmApplicantData(string $dni, string $email): array
+    {
+        $applicant = SimulationApplicant::where('dni', $dni)
+            ->where('email', $email)
+            ->with('simulationProcess')
+            ->first();
+
+        if (!$applicant) {
+            return [
+                'success' => false,
+                'message' => 'Aplicante no encontrado',
+            ];
+        }
+
+        if (!$applicant->simulationProcess) {
+            return [
+                'success' => false,
+                'message' => 'Proceso de simulacro no encontrado',
+            ];
+        }
+
+        // Verificar que haya pagado
+        if (!$applicant->simulationProcess->hasPaid()) {
+            return [
+                'success' => false,
+                'message' => 'Debe completar el pago antes de confirmar sus datos',
+            ];
+        }
+
+        // Verificar si ya confirmó
+        if (!is_null($applicant->simulationProcess->data_confirmation_at)) {
+            return [
+                'success' => false,
+                'message' => 'Los datos ya fueron confirmados anteriormente',
+            ];
+        }
+
+        // Confirmar datos (solo data_confirmation, NO registration)
+        $applicant->simulationProcess->confirmData();
+
+        return [
+            'success' => true,
+            'message' => 'Datos confirmados exitosamente',
+            'data' => $this->searchByDniAndEmail($dni, $email),
+        ];
+    }
+
+    /**
+     * Completar inscripción - El postulante hace clic en el botón final
+     * Marca registration como true y envía el correo con todos los datos
+     */
+    public function completeRegistration(string $dni, string $email): array
+    {
+        $applicant = SimulationApplicant::where('dni', $dni)
+            ->where('email', $email)
+            ->with(['simulationProcess', 'examSimulation'])
+            ->first();
+
+        if (!$applicant) {
+            return [
+                'success' => false,
+                'message' => 'Aplicante no encontrado',
+            ];
+        }
+
+        if (!$applicant->simulationProcess) {
+            return [
+                'success' => false,
+                'message' => 'Proceso de simulacro no encontrado',
+            ];
+        }
+
+        // Verificar que haya pagado
+        if (!$applicant->simulationProcess->hasPaid()) {
+            return [
+                'success' => false,
+                'message' => 'Debe completar el pago antes de finalizar la inscripción',
+            ];
+        }
+
+        // Verificar que haya confirmado datos
+        if (is_null($applicant->simulationProcess->data_confirmation_at)) {
+            return [
+                'success' => false,
+                'message' => 'Debe confirmar sus datos antes de finalizar la inscripción',
+            ];
+        }
+
+        // Verificar si ya completó la inscripción
+        if (!is_null($applicant->simulationProcess->registration_at)) {
+            return [
+                'success' => false,
+                'message' => 'La inscripción ya fue completada anteriormente',
+            ];
+        }
+
+        // Completar inscripción
+        $applicant->simulationProcess->completeRegistration();
+
+        // Refrescar el applicant para obtener el código generado
+        $applicant->refresh();
+
+        // Enviar correo con datos del postulante y simulacro
+        $this->sendCompletedNotification($applicant);
+
+        return [
+            'success' => true,
+            'message' => 'Inscripción completada exitosamente. Se ha enviado un correo con tu código: ' . $applicant->code,
+            'data' => $this->searchByDniAndEmail($dni, $email),
+        ];
+    }
+
+    /**
+     * Marcar pago como completado (para uso interno/webhook de pagos)
+     */
+    public function markPaymentComplete(string $dni, string $email): array
+    {
+        $applicant = SimulationApplicant::where('dni', $dni)
+            ->where('email', $email)
+            ->with('simulationProcess')
+            ->first();
+
+        if (!$applicant) {
+            return [
+                'success' => false,
+                'message' => 'Aplicante no encontrado',
+            ];
+        }
+
+        if (!$applicant->simulationProcess) {
+            return [
+                'success' => false,
+                'message' => 'Proceso de simulacro no encontrado',
+            ];
+        }
+
+        if (!is_null($applicant->simulationProcess->payment_at)) {
+            return [
+                'success' => false,
+                'message' => 'El pago ya fue registrado anteriormente',
+            ];
+        }
+
+        $applicant->simulationProcess->markPaymentComplete();
+
+        return [
+            'success' => true,
+            'message' => 'Pago registrado exitosamente',
+            'data' => $this->searchByDniAndEmail($dni, $email),
+        ];
+    }
+
+    /**
+     * Verificar estado del proceso de un aplicante
+     */
+    public function getProcessStatus(string $dni, string $email): array
+    {
+        $applicant = SimulationApplicant::where('dni', $dni)
+            ->where('email', $email)
+            ->with(['simulationProcess', 'examSimulation'])
+            ->first();
+
+        if (!$applicant) {
+            return [
+                'success' => false,
+                'message' => 'Aplicante no encontrado',
+                'data' => null,
+            ];
+        }
+
+        $process = $applicant->simulationProcess;
+
+        return [
+            'success' => true,
+            'message' => 'Estado del proceso obtenido',
+            'data' => [
+                'code' => $applicant->code,
+                'full_name' => $applicant->getFullNameAttribute(),
+                'exam_simulation' => $applicant->examSimulation->description,
+                'can_edit_data' => $process ? $process->canEditData() : false,
+                'is_complete' => $process ? $process->isComplete() : false,
+                'steps' => [
+                    'pre_registration' => [
+                        'completed' => !is_null($process?->pre_registration_at),
+                        'completed_at' => $process?->pre_registration_at?->format('d/m/Y H:i'),
+                        'label' => 'Pre-inscripción',
+                    ],
+                    'payment' => [
+                        'completed' => !is_null($process?->payment_at),
+                        'completed_at' => $process?->payment_at?->format('d/m/Y H:i'),
+                        'label' => 'Pago',
+                    ],
+                    'data_confirmation' => [
+                        'completed' => !is_null($process?->data_confirmation_at),
+                        'completed_at' => $process?->data_confirmation_at?->format('d/m/Y H:i'),
+                        'label' => 'Confirmación de datos',
+                    ],
+                    'registration' => [
+                        'completed' => !is_null($process?->registration_at),
+                        'completed_at' => $process?->registration_at?->format('d/m/Y H:i'),
+                        'label' => 'Inscripción',
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Enviar correo de inscripción completada con datos del postulante y simulacro
+     */
+    protected function sendCompletedNotification(SimulationApplicant $applicant): void
+    {
+        try {
+            Notification::route('mail', $applicant->email)
+                ->notify(new SimulationCompletedNotification($applicant));
+        } catch (\Exception $e) {
+            \Log::error('Error enviando email de inscripción completada: ' . $e->getMessage());
+        }
     }
 }

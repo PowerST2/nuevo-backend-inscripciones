@@ -52,4 +52,12 @@ class SimulationApplicant extends Model
     {
         return $this->simulationProcess?->registration ?? false;
     }
+
+    /**
+     * Obtener nombre completo
+     */
+    public function getFullNameAttribute(): string
+    {
+        return trim("{$this->first_names} {$this->last_name_father} {$this->last_name_mother}");
+    }
 }
