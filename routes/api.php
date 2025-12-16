@@ -30,3 +30,6 @@ require __DIR__.'/admissions/modalitydocument.php';
 
 // Exam Simulation routes
 require __DIR__.'/admissions/examsimulation.php';
+
+// Simulation Applicant routes
+require __DIR__.'/admissions/simulationapplicant.php';

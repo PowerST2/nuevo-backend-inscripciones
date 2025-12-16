@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\ExamSimulationController;
+use App\Http\Controllers\Api\Simulation\ExamSimulationController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes - Exam Simulations

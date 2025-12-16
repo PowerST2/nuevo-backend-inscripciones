@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Filament\Resources\SimulationApplicants;
+namespace App\Filament\Resources\Simulation\SimulationApplicants;
 
-use App\Filament\Resources\SimulationApplicants\Pages\ManageSimulationApplicants;
-use App\Models\SimulationApplicant;
+use App\Filament\Resources\Simulation\SimulationApplicants\Pages\ManageSimulationApplicants;
+use App\Models\Simulation\SimulationApplicant;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -36,6 +36,11 @@ class SimulationApplicantResource extends Resource
     {
         return $schema
             ->components([
+                TextInput::make('code')
+                    ->label('Código')
+                    ->disabled()
+                    ->dehydrated(false)
+                    ->visibleOn('edit'),
                 TextInput::make('dni')
                     ->required()
                     ->maxLength(8)
@@ -68,6 +73,10 @@ class SimulationApplicantResource extends Resource
         return $table
             ->recordTitleAttribute('name')
             ->columns([
+                TextColumn::make('code')
+                    ->label('Código')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('dni')
                     ->searchable(),
                 TextColumn::make('last_name_father')

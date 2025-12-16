@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('simulation_applicants', function (Blueprint $table) {
             $table->id();
             $table->string('dni', 8);
+            $table->string('code', 20)->nullable()->unique()->after('id');
             $table->string('last_name_father', 50);
             $table->string('last_name_mother', 50);
             $table->string('first_names', 100);

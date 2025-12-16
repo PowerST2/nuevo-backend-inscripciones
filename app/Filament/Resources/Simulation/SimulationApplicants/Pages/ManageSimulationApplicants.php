@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\SimulationApplicants\Pages;
+namespace App\Filament\Resources\Simulation\SimulationApplicants\Pages;
 
-use App\Filament\Resources\SimulationApplicants\SimulationApplicantResource;
+use App\Filament\Resources\Simulation\SimulationApplicants\SimulationApplicantResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ManageRecords;
 

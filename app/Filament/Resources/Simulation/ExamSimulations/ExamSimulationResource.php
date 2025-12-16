@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Filament\Resources\ExamSimulations;
+namespace App\Filament\Resources\Simulation\ExamSimulations;
 
-use App\Filament\Resources\ExamSimulations\Pages\ManageExamSimulations;
-use App\Models\ExamSimulation;
+use App\Filament\Resources\Simulation\ExamSimulations\Pages\ManageExamSimulations;
+use App\Models\Simulation\ExamSimulation;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;

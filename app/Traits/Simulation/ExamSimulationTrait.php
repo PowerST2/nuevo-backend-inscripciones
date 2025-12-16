@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Traits;
+namespace App\Traits\Simulation;
 
-use App\Models\ExamSimulation;
+use App\Models\Simulation\ExamSimulation;
 use Carbon\Carbon;
 
 trait ExamSimulationTrait
