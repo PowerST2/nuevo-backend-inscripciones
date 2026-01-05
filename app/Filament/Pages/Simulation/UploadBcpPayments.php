@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages\Simulation;
 
+use App\Exports\PaymentExport;
+use App\Models\PaymentPortfolio;
 use App\Models\Simulation\ExamSimulation;
 use App\Models\Simulation\SimulationApplicant;
 use BackedEnum;
@@ -13,22 +15,31 @@ use Filament\Schemas\Schema;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Table;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Excel as ExcelType;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use UnitEnum;
 
-class UploadBcpPayments extends Page implements HasForms
+class UploadBcpPayments extends Page implements HasForms, HasTable
 {
     use InteractsWithForms;
+    use InteractsWithTable;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowUpTray;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
 
-    protected static ?string $navigationLabel = 'Cargar Pagos BCP';
+    protected static ?string $navigationLabel = 'Gestión de Pagos';
 
-    protected static ?string $title = 'Cargar Pagos BCP';
+    protected static ?string $title = 'Gestión de Pagos';
 
-    protected static ?string $slug = 'simulation/upload-bcp-payments';
+    protected static ?string $slug = 'simulation/payment-management';
 
     protected static string|UnitEnum|null $navigationGroup = 'Simulacros';
 
@@ -39,6 +50,8 @@ class UploadBcpPayments extends Page implements HasForms
     public ?array $data = [];
 
     public ?array $processResults = null;
+
+    public string $activeTab = 'upload';
 
     public function mount(): void
     {
@@ -64,6 +77,190 @@ class UploadBcpPayments extends Page implements HasForms
         }
 
         return 'No hay simulacro activo';
+    }
+
+    /**
+     * Obtener estadísticas de cartera para el simulacro activo
+     */
+    public function getPortfolioStats(): array
+    {
+        $simulation = $this->getActiveSimulation();
+
+        if (!$simulation) {
+            return [
+                'total' => 0,
+                'pending' => 0,
+                'sent' => 0,
+                'paid' => 0,
+                'total_amount' => 0,
+                'pending_amount' => 0,
+            ];
+        }
+
+        $query = PaymentPortfolio::where('process_type', 'simulation')
+            ->where('process_id', $simulation->id);
+
+        return [
+            'total' => (clone $query)->count(),
+            'pending' => (clone $query)->notSent()->count(),
+            'sent' => (clone $query)->sent()->count(),
+            'paid' => (clone $query)->paid()->count(),
+            'total_amount' => (clone $query)->sum('amount'),
+            'pending_amount' => (clone $query)->notSent()->sum('amount'),
+        ];
+    }
+
+    /**
+     * Tabla de cartera de pagos
+     */
+    public function table(Table $table): Table
+    {
+        $simulation = $this->getActiveSimulation();
+
+        return $table
+            ->query(
+                PaymentPortfolio::query()
+                    ->where('process_type', 'simulation')
+                    ->where('process_id', $simulation?->id ?? 0)
+            )
+            ->columns([
+                TextColumn::make('receipt')
+                    ->label('Recibo')
+                    ->searchable(),
+                TextColumn::make('document_number')
+                    ->label('DNI')
+                    ->searchable(),
+                TextColumn::make('client_name')
+                    ->label('Cliente')
+                    ->searchable()
+                    ->limit(30),
+                TextColumn::make('amount')
+                    ->label('Monto')
+                    ->money('PEN'),
+                TextColumn::make('service_code')
+                    ->label('Servicio')
+                    ->badge(),
+                IconColumn::make('is_sent')
+                    ->label('Enviado')
+                    ->boolean(),
+                TextColumn::make('sent_at')
+                    ->label('Fecha Envío')
+                    ->dateTime()
+                    ->placeholder('—'),
+                IconColumn::make('is_paid')
+                    ->label('Pagado')
+                    ->boolean(),
+                TextColumn::make('created_at')
+                    ->label('Creado')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->defaultSort('created_at', 'desc');
+    }
+
+    /**
+     * Descargar portfolios pendientes (no enviados)
+     */
+    public function downloadPendingPortfolios(): ?StreamedResponse
+    {
+        $simulation = $this->getActiveSimulation();
+
+        if (!$simulation) {
+            Notification::make()
+                ->title('Error')
+                ->body('No hay simulacro activo.')
+                ->danger()
+                ->send();
+            return null;
+        }
+
+        $export = PaymentExport::fromPendingPortfolios('simulation', $simulation->id);
+
+        if ($export->collection()->isEmpty()) {
+            Notification::make()
+                ->title('No hay registros pendientes')
+                ->body('Todos los pagos ya han sido enviados anteriormente.')
+                ->warning()
+                ->send();
+
+            return null;
+        }
+
+        $count = $export->collection()->count();
+
+        // Marcar como enviados después de generar el archivo
+        $export->markAsSent();
+
+        Notification::make()
+            ->title('Cartera descargada')
+            ->body("Se han marcado {$count} registros como enviados.")
+            ->success()
+            ->send();
+
+        return response()->streamDownload(function () use ($export) {
+            echo Excel::raw($export, ExcelType::XLS);
+        }, 'reporteocef.xls', [
+            'Content-Type' => 'application/vnd.ms-excel',
+        ]);
+    }
+
+    /**
+     * Descargar todos los portfolios (incluyendo ya enviados)
+     */
+    public function downloadAllPortfolios(): ?StreamedResponse
+    {
+        $simulation = $this->getActiveSimulation();
+
+        if (!$simulation) {
+            Notification::make()
+                ->title('Error')
+                ->body('No hay simulacro activo.')
+                ->danger()
+                ->send();
+            return null;
+        }
+
+        $portfolios = PaymentPortfolio::where('process_type', 'simulation')
+            ->where('process_id', $simulation->id)
+            ->with(['tariff', 'payable'])
+            ->get();
+
+        if ($portfolios->isEmpty()) {
+            Notification::make()
+                ->title('No hay registros')
+                ->body('No se encontraron pagos para este simulacro.')
+                ->warning()
+                ->send();
+
+            return null;
+        }
+
+        $data = $portfolios->map(function ($portfolio) {
+            $applicant = $portfolio->payable;
+
+            return [
+                'BOL_FAC' => '2',
+                'DNI_RUC' => $portfolio->document_number ?? '',
+                'NOMBRES_RAZ_SOCIAL' => $applicant?->first_names ?? '',
+                'PATERNO' => $applicant?->last_name_father ?? '',
+                'MATERNO' => $applicant?->last_name_mother ?? '',
+                'DIRECCION' => '',
+                'CORREO' => $portfolio->client_email ?? '',
+                'DESCRIPCION' => $portfolio->description ?? '',
+                'PARTIDA' => $portfolio->tariff?->item ?? '',
+                'PROYECTO' => $portfolio->tariff?->project ?? '',
+                'MONTO' => (int) $portfolio->amount,
+            ];
+        });
+
+        $export = new PaymentExport($data);
+
+        return response()->streamDownload(function () use ($export) {
+            echo Excel::raw($export, ExcelType::XLS);
+        }, 'reporteocef.xls', [
+            'Content-Type' => 'application/vnd.ms-excel',
+        ]);
     }
 
     public function form(Schema $form): Schema
