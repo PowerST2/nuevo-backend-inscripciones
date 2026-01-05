@@ -148,11 +148,12 @@ class ExamSimulationResource extends Resource
             ]);
     }
 
-    public static function getPages(): array
-    {
-        return [
-            'index' => ManageExamSimulations::route('/'),
-            'download-portfolio' => DownloadPortfolio::route('/{record}/download-portfolio'),
-        ];
-    }
+        public static function getPages(): array
+        {
+            return [
+                'index' => ManageExamSimulations::route('/'),
+                'download-portfolio' => DownloadPortfolio::route('/{record}/download-portfolio'),
+            ];
+        }
+
 }

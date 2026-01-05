@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Api\Simulation;
 
+use App\Models\Simulation\ExamSimulation;
 use App\Traits\Simulation\SimulationApplicantTrait;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Storage;
 
 class SimulationApplicantController extends Controller
 {
@@ -49,7 +52,18 @@ class SimulationApplicantController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        // Verificar si hay simulacro activo y si requiere foto
+        $activeSimulation = $this->getActiveExamSimulation();
+        
+        if (!$activeSimulation) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No hay un simulacro activo en este momento',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Reglas de validación base
+        $rules = [
             'dni' => 'required|string|max:8',
             'last_name_father' => 'required|string|max:50',
             'last_name_mother' => 'required|string|max:50',
@@ -57,11 +71,40 @@ class SimulationApplicantController extends Controller
             'email' => 'required|email|max:150',
             'phone_mobile' => 'required|string|max:10',
             'phone_other' => 'nullable|string|max:10',
+        ];
+
+        // Si el simulacro es presencial (no virtual), la foto es obligatoria
+        if ($activeSimulation->requiresPhoto()) {
+            $rules['photo'] = 'required|image|mimes:jpeg,jpg,png|max:2048';
+        } else {
+            $rules['photo'] = 'nullable|image|mimes:jpeg,jpg,png|max:2048';
+        }
+
+        $validated = $request->validate($rules, [
+            'photo.required' => 'La foto es obligatoria para simulacros presenciales',
+            'photo.image' => 'El archivo debe ser una imagen',
+            'photo.mimes' => 'La foto debe ser formato JPEG, JPG o PNG',
+            'photo.max' => 'La foto no debe superar los 2MB',
         ]);
+
+        // Procesar foto si existe
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $photo = $request->file('photo');
+            $filename = $validated['dni'] . '_' . time() . '.' . $photo->getClientOriginalExtension();
+            $photoPath = $photo->storeAs('simulation-photos/' . $activeSimulation->id, $filename, 'public');
+        }
+
+        $validated['photo_path'] = $photoPath;
 
         $result = $this->insertApplicant($validated);
 
         if (!$result['success']) {
+            // Si falla, eliminar la foto subida
+            if ($photoPath) {
+                Storage::disk('public')->delete($photoPath);
+            }
+            
             return response()->json([
                 'status' => 'error',
                 'message' => $result['message'],

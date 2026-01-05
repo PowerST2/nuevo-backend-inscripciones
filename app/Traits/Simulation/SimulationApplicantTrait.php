@@ -18,7 +18,7 @@ trait SimulationApplicantTrait
     {
         $applicant = SimulationApplicant::where('dni', $dni)
             ->where('email', $email)
-            ->with('simulationProcess')
+            ->with(['simulationProcess', 'examSimulation'])
             ->first();
 
         if (!$applicant) {
@@ -33,7 +33,12 @@ trait SimulationApplicantTrait
             'last_name_mother' => $applicant->last_name_mother,
             'first_names' => $applicant->first_names,
             'email' => $applicant->email,
+            'photo_path' => $applicant->photo_path,
+            'photo_url' => $applicant->photo_url,
             'exam_description' => $applicant->examSimulation->description,
+            'exam_is_virtual' => $applicant->examSimulation->is_virtual,
+            'requires_photo' => $applicant->requiresPhoto(),
+            'has_photo' => $applicant->hasPhoto(),
             'process' => $applicant->simulationProcess ? [
                 'pre_registration' => $applicant->simulationProcess->pre_registration_at,
                 'payment' => $applicant->simulationProcess->payment_at,
@@ -97,6 +102,7 @@ trait SimulationApplicantTrait
             'email' => $data['email'] ?? null,
             'phone_mobile' => $data['phone_mobile'] ?? null,
             'phone_other' => $data['phone_other'] ?? null,
+            'photo_path' => $data['photo_path'] ?? null,
             'exam_simulation_id' => $activeSimulation->id,
         ]);
 
