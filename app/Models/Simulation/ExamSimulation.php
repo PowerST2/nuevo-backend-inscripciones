@@ -19,12 +19,14 @@ class ExamSimulation extends Model
         'exam_date_end',
         'active',
         'tariff_id',
+        'is_virtual',
     ];
 
     protected $casts = [
         'exam_date_start' => 'date',
         'exam_date_end' => 'date',
         'active' => 'boolean',
+        'is_virtual' => 'boolean',
     ];
 
     public function applicants(): HasMany
@@ -55,5 +57,21 @@ class ExamSimulation extends Model
     public function getIsReallyActiveAttribute(): bool
     {
         return $this->active && $this->is_within_range;
+    }
+
+    /**
+     * Verificar si requiere foto (presencial)
+     */
+    public function requiresPhoto(): bool
+    {
+        return !$this->is_virtual;
+    }
+
+    /**
+     * Obtener el tipo de modalidad como texto
+     */
+    public function getModalityTextAttribute(): string
+    {
+        return $this->is_virtual ? 'Virtual' : 'Presencial';
     }
 }

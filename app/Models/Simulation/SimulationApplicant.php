@@ -19,6 +19,7 @@ class SimulationApplicant extends Model
         'phone_mobile',
         'phone_other',
         'exam_simulation_id',
+        'photo_path',
     ];
 
     /**
@@ -59,5 +60,29 @@ class SimulationApplicant extends Model
     public function getFullNameAttribute(): string
     {
         return trim("{$this->first_names} {$this->last_name_father} {$this->last_name_mother}");
+    }
+
+    /**
+     * Verificar si el postulante requiere foto (simulacro presencial)
+     */
+    public function requiresPhoto(): bool
+    {
+        return $this->examSimulation?->requiresPhoto() ?? false;
+    }
+
+    /**
+     * Verificar si tiene foto
+     */
+    public function hasPhoto(): bool
+    {
+        return !empty($this->photo_path);
+    }
+
+    /**
+     * Obtener URL de la foto
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return $this->photo_path ? asset('storage/' . $this->photo_path) : null;
     }
 }

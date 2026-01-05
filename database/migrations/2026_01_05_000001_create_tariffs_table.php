@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('project', 10)->nullable()->comment('Proyecto contable');
             $table->decimal('amount', 10, 2)->default(0);
             $table->boolean('active')->default(true);
+            $table->boolean('is_admission')->default(false)->comment('true = Admisión, false = Simulacro');
             $table->integer('sort_order')->nullable()->default(null);
             $table->timestamps();
         });

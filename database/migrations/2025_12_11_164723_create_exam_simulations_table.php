@@ -15,6 +15,8 @@ return new class extends Migration
             $table->date('exam_date_start');
             $table->date('exam_date_end');
             $table->boolean('active')->default(true);
+            $table->foreignId('tariff_id')->nullable()->constrained()->nullOnDelete();
+            $table->boolean('is_virtual')->default(false)->comment('true = Virtual, false = Presencial');
             $table->timestamps();
         });
     }

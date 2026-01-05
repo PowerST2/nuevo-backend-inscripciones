@@ -49,10 +49,11 @@ class ExamSimulationResource extends Resource
                     ->label('Descripción')
                     ->columnSpanFull(),
                 Select::make('tariff_id')
-                    ->label('Tarifario/Servicio')
+                    ->label('Tarifario')
                     ->relationship('tariff', 'description')
                     ->options(
                         Tariff::active()
+                            ->forSimulation()
                             ->ordered()
                             ->get()
                             ->mapWithKeys(fn ($tariff) => [
@@ -62,7 +63,7 @@ class ExamSimulationResource extends Resource
                     ->searchable()
                     ->preload()
                     ->required()
-                    ->helperText('Seleccione el servicio/tarifa que se cobrará por este simulacro'),
+                    ->helperText('Seleccione el tarifario que se cobrará por este simulacro'),
                 DatePicker::make('exam_date_start')
                     ->label('Fecha inicio')
                     ->required(),
@@ -72,6 +73,10 @@ class ExamSimulationResource extends Resource
                 Toggle::make('active')
                     ->label('Activo')
                     ->default(true),
+                Toggle::make('is_virtual')
+                    ->label('¿Es Virtual?')
+                    ->helperText('Activado = Virtual (sin foto), Desactivado = Presencial (requiere foto)')
+                    ->default(false),
             ]);
     }
 
@@ -105,6 +110,14 @@ class ExamSimulationResource extends Resource
                 IconColumn::make('active')
                     ->label('Activo')
                     ->boolean(),
+                IconColumn::make('is_virtual')
+                    ->label('Modalidad')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-computer-desktop')
+                    ->falseIcon('heroicon-o-building-library')
+                    ->trueColor('info')
+                    ->falseColor('warning')
+                    ->tooltip(fn ($record) => $record->is_virtual ? 'Virtual' : 'Presencial'),
                 TextColumn::make('created_at')
                     ->label('Creado')
                     ->dateTime()
