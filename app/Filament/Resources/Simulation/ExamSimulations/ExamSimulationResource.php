@@ -3,13 +3,17 @@
 namespace App\Filament\Resources\Simulation\ExamSimulations;
 
 use App\Filament\Resources\Simulation\ExamSimulations\Pages\ManageExamSimulations;
+use App\Filament\Resources\Simulation\ExamSimulations\Pages\DownloadPortfolio;
 use App\Models\Simulation\ExamSimulation;
+use App\Models\Tariff;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
@@ -39,14 +43,34 @@ class ExamSimulationResource extends Resource
         return $schema
             ->components([
                 TextInput::make('code')
+                    ->label('Código')
                     ->required(),
                 Textarea::make('description')
+                    ->label('Descripción')
                     ->columnSpanFull(),
+                Select::make('tariff_id')
+                    ->label('Tarifario/Servicio')
+                    ->relationship('tariff', 'description')
+                    ->options(
+                        Tariff::active()
+                            ->ordered()
+                            ->get()
+                            ->mapWithKeys(fn ($tariff) => [
+                                $tariff->id => "{$tariff->code} - {$tariff->description} (S/ {$tariff->amount})"
+                            ])
+                    )
+                    ->searchable()
+                    ->preload()
+                    ->required()
+                    ->helperText('Seleccione el servicio/tarifa que se cobrará por este simulacro'),
                 DatePicker::make('exam_date_start')
+                    ->label('Fecha inicio')
                     ->required(),
                 DatePicker::make('exam_date_end')
+                    ->label('Fecha fin')
                     ->required(),
                 Toggle::make('active')
+                    ->label('Activo')
                     ->default(true),
             ]);
     }
@@ -57,23 +81,37 @@ class ExamSimulationResource extends Resource
             ->recordTitleAttribute('code')
             ->columns([
                 TextColumn::make('code')
+                    ->label('Código')
                     ->searchable(),
                 TextColumn::make('description')
+                    ->label('Descripción')
                     ->limit(50)
                     ->searchable(),
+                TextColumn::make('tariff.code')
+                    ->label('Servicio')
+                    ->badge()
+                    ->searchable(),
+                TextColumn::make('tariff.amount')
+                    ->label('Monto')
+                    ->money('PEN'),
                 TextColumn::make('exam_date_start')
+                    ->label('Fecha inicio')
                     ->date()
                     ->sortable(),
                 TextColumn::make('exam_date_end')
+                    ->label('Fecha fin')
                     ->date()
                     ->sortable(),
                 IconColumn::make('active')
+                    ->label('Activo')
                     ->boolean(),
                 TextColumn::make('created_at')
+                    ->label('Creado')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Actualizado')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -82,6 +120,11 @@ class ExamSimulationResource extends Resource
                 //
             ])
             ->recordActions([
+                Action::make('downloadPortfolio')
+                    ->label('Descargar Cartera')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success')
+                    ->url(fn (ExamSimulation $record): string => route('filament.admin.resources.simulation.exam-simulations.download-portfolio', ['record' => $record])),
                 EditAction::make(),
                 DeleteAction::make(),
             ])
@@ -96,6 +139,7 @@ class ExamSimulationResource extends Resource
     {
         return [
             'index' => ManageExamSimulations::route('/'),
+            'download-portfolio' => DownloadPortfolio::route('/{record}/download-portfolio'),
         ];
     }
 }

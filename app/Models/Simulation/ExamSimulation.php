@@ -2,8 +2,10 @@
 
 namespace App\Models\Simulation;
 
+use App\Models\Tariff;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ExamSimulation extends Model
@@ -16,6 +18,7 @@ class ExamSimulation extends Model
         'exam_date_start',
         'exam_date_end',
         'active',
+        'tariff_id',
     ];
 
     protected $casts = [
@@ -27,6 +30,14 @@ class ExamSimulation extends Model
     public function applicants(): HasMany
     {
         return $this->hasMany(SimulationApplicant::class);
+    }
+
+    /**
+     * Relación con la tarifa/servicio
+     */
+    public function tariff(): BelongsTo
+    {
+        return $this->belongsTo(Tariff::class);
     }
 
     /**

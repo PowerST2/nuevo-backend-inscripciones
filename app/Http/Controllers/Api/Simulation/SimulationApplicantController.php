@@ -13,12 +13,13 @@ class SimulationApplicantController extends Controller
 
     /**
      * Buscar aplicante por DNI y email (ambos obligatorios)
-     * GET /api/simulation-applicants/search?dni=12345678&email=test@email.com
+     * POST /api/simulation-applicants/search
+     * Body: { "dni": "12345678", "email": "test@email.com" }
      */
     public function search(Request $request)
     {
-        $dni = $request->query('dni');
-        $email = $request->query('email');
+        $dni = $request->input('dni');
+        $email = $request->input('email');
 
         if (!$dni || !$email) {
             return response()->json([
