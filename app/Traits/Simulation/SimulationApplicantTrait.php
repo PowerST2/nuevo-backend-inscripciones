@@ -7,7 +7,6 @@ use App\Models\Simulation\SimulationApplicant;
 use App\Notifications\Simulation\SimulationCompletedNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Storage;
 
 trait SimulationApplicantTrait
 {
@@ -43,6 +42,7 @@ trait SimulationApplicantTrait
             'process' => $applicant->simulationProcess ? [
                 'pre_registration' => $applicant->simulationProcess->pre_registration_at,
                 'payment' => $applicant->simulationProcess->payment_at,
+                'photo' => $applicant->simulationProcess->photo_at,
                 'data_confirmation' => $applicant->simulationProcess->data_confirmation_at,
                 'registration' => $applicant->simulationProcess->registration_at,
             ] : null,
@@ -94,7 +94,7 @@ trait SimulationApplicantTrait
             ];
         }
 
-        // Crear el aplicante
+        // Crear el aplicante (sin foto - se sube después)
         $applicant = SimulationApplicant::create([
             'dni' => $data['dni'],
             'last_name_father' => $data['last_name_father'],
@@ -103,19 +103,18 @@ trait SimulationApplicantTrait
             'email' => $data['email'] ?? null,
             'phone_mobile' => $data['phone_mobile'] ?? null,
             'phone_other' => $data['phone_other'] ?? null,
-            'photo_path' => $data['photo_path'] ?? null,
             'exam_simulation_id' => $activeSimulation->id,
         ]);
 
         return [
             'success' => true,
-            'message' => 'Aplicante registrado exitosamente',
+            'message' => 'Aplicante registrado exitosamente. ' . ($activeSimulation->requiresPhoto() ? 'Recuerde subir su foto.' : ''),
             'data' => $this->searchByDniAndEmail($applicant->dni, $applicant->email),
         ];
     }
 
     /**
-     * Actualizar datos del aplicante (solo si puede editar)
+     * Actualizar datos del aplicante (solo si puede editar) - SIN FOTO
      */
     public function updateApplicant(string $dni, string $email, array $data): array
     {
@@ -141,23 +140,16 @@ trait SimulationApplicantTrait
             ];
         }
 
-        // Campos permitidos para actualizar
+        // Campos permitidos para actualizar (sin photo_path - eso va por API separada)
         $allowedFields = [
             'last_name_father',
             'last_name_mother',
             'first_names',
             'phone_mobile',
             'phone_other',
-            'photo_path',
         ];
 
         $updateData = array_intersect_key($data, array_flip($allowedFields));
-
-        // Si se actualiza la foto, eliminar la anterior
-        if (isset($updateData['photo_path']) && $applicant->photo_path) {
-            Storage::disk('public')->delete($applicant->photo_path);
-        }
-
         $applicant->update($updateData);
 
         return [
@@ -174,7 +166,7 @@ trait SimulationApplicantTrait
     {
         $applicant = SimulationApplicant::where('dni', $dni)
             ->where('email', $email)
-            ->with('simulationProcess')
+            ->with(['simulationProcess', 'examSimulation'])
             ->first();
 
         if (!$applicant) {
@@ -196,6 +188,14 @@ trait SimulationApplicantTrait
             return [
                 'success' => false,
                 'message' => 'Debe completar el pago antes de confirmar sus datos',
+            ];
+        }
+
+        // Verificar que haya subido foto si es presencial
+        if ($applicant->requiresPhoto() && !$applicant->simulationProcess->hasUploadedPhoto()) {
+            return [
+                'success' => false,
+                'message' => 'Debe subir su foto antes de confirmar sus datos (simulacro presencial)',
             ];
         }
 
@@ -222,11 +222,11 @@ trait SimulationApplicantTrait
      * 
      * Este método permite al postulante:
      * 1. Modificar sus datos personales (si aún puede editarlos)
-     * 2. Actualizar su foto (si el simulacro es presencial)
-     * 3. Confirmar que los datos son correctos (bloquea edición futura)
+     * 2. Confirmar que los datos son correctos (bloquea edición futura)
      * 
      * Requisitos:
      * - El pago debe estar registrado
+     * - La foto debe estar subida (si es simulacro presencial)
      * - Los datos no deben haber sido confirmados previamente
      */
     public function updateAndConfirmApplicantData(string $dni, string $email, array $data): array
@@ -266,22 +266,21 @@ trait SimulationApplicantTrait
             ];
         }
 
-        // Si el simulacro requiere foto y no tiene foto, verificar que se esté enviando
-        if ($applicant->requiresPhoto() && !$applicant->hasPhoto() && !isset($data['photo_path'])) {
+        // Verificar que haya subido foto si es presencial
+        if ($applicant->requiresPhoto() && !$applicant->simulationProcess->hasUploadedPhoto()) {
             return [
                 'success' => false,
-                'message' => 'La foto es obligatoria para simulacros presenciales. Debe subir una foto antes de confirmar.',
+                'message' => 'Debe subir su foto antes de confirmar sus datos (simulacro presencial)',
             ];
         }
 
-        // Actualizar datos si se proporcionaron
+        // Actualizar datos si se proporcionaron (sin foto - eso va por API separada)
         $allowedFields = [
             'last_name_father',
             'last_name_mother',
             'first_names',
             'phone_mobile',
             'phone_other',
-            'photo_path',
         ];
 
         $updateData = array_filter(
@@ -290,11 +289,6 @@ trait SimulationApplicantTrait
         );
 
         if (!empty($updateData)) {
-            // Si se actualiza la foto, eliminar la anterior
-            if (isset($updateData['photo_path']) && $applicant->photo_path) {
-                Storage::disk('public')->delete($applicant->photo_path);
-            }
-
             $applicant->update($updateData);
         }
 

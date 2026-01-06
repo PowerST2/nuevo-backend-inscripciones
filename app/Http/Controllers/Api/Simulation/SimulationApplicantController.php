@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Simulation;
 
 use App\Models\Simulation\ExamSimulation;
+use App\Models\Simulation\SimulationApplicant;
 use App\Traits\Simulation\SimulationApplicantTrait;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -47,12 +48,12 @@ class SimulationApplicantController extends Controller
     }
 
     /**
-     * Insertar nuevo aplicante al simulacro activo
+     * Insertar nuevo aplicante al simulacro activo (SIN FOTO)
      * POST /api/simulation-applicants
+     * Body JSON: { dni, last_name_father, last_name_mother, first_names, email, phone_mobile, phone_other? }
      */
     public function store(Request $request)
     {
-        // Verificar si hay simulacro activo y si requiere foto
         $activeSimulation = $this->getActiveExamSimulation();
         
         if (!$activeSimulation) {
@@ -62,49 +63,19 @@ class SimulationApplicantController extends Controller
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        // Reglas de validación base
-        $rules = [
-            'dni' => 'required|string|max:8',
+        $validated = $request->validate([
+            'dni' => 'required|string|size:8',
             'last_name_father' => 'required|string|max:50',
             'last_name_mother' => 'required|string|max:50',
             'first_names' => 'required|string|max:100',
             'email' => 'required|email|max:150',
-            'phone_mobile' => 'required|string|max:10',
-            'phone_other' => 'nullable|string|max:10',
-        ];
-
-        // Si el simulacro es presencial (no virtual), la foto es obligatoria
-        if ($activeSimulation->requiresPhoto()) {
-            $rules['photo'] = 'required|image|mimes:jpeg,jpg,png|max:2048';
-        } else {
-            $rules['photo'] = 'nullable|image|mimes:jpeg,jpg,png|max:2048';
-        }
-
-        $validated = $request->validate($rules, [
-            'photo.required' => 'La foto es obligatoria para simulacros presenciales',
-            'photo.image' => 'El archivo debe ser una imagen',
-            'photo.mimes' => 'La foto debe ser formato JPEG, JPG o PNG',
-            'photo.max' => 'La foto no debe superar los 2MB',
+            'phone_mobile' => 'required|string|max:15',
+            'phone_other' => 'nullable|string|max:15',
         ]);
-
-        // Procesar foto si existe
-        $photoPath = null;
-        if ($request->hasFile('photo')) {
-            $photo = $request->file('photo');
-            $filename = $validated['dni'] . '_' . time() . '.' . $photo->getClientOriginalExtension();
-            $photoPath = $photo->storeAs('simulation-photos/' . $activeSimulation->id, $filename, 'public');
-        }
-
-        $validated['photo_path'] = $photoPath;
 
         $result = $this->insertApplicant($validated);
 
         if (!$result['success']) {
-            // Si falla, eliminar la foto subida
-            if ($photoPath) {
-                Storage::disk('public')->delete($photoPath);
-            }
-            
             return response()->json([
                 'status' => 'error',
                 'message' => $result['message'],
@@ -119,8 +90,78 @@ class SimulationApplicantController extends Controller
     }
 
     /**
-     * Actualizar datos del aplicante
+     * Subir o actualizar foto del postulante
+     * POST /api/simulation-applicants/upload-photo
+     * Content-Type: multipart/form-data
+     * Body: { dni, email, photo }
+     */
+    public function uploadPhoto(Request $request)
+    {
+        $validated = $request->validate([
+            'dni' => 'required|string|size:8',
+            'email' => 'required|email',
+            'photo' => 'required|image|mimes:jpeg,jpg,png|max:2048',
+        ], [
+            'photo.required' => 'La foto es obligatoria',
+            'photo.image' => 'El archivo debe ser una imagen',
+            'photo.mimes' => 'La foto debe ser formato JPEG, JPG o PNG',
+            'photo.max' => 'La foto no debe superar los 2MB',
+        ]);
+
+        $applicant = SimulationApplicant::where('dni', $validated['dni'])
+            ->where('email', $validated['email'])
+            ->with(['simulationProcess', 'examSimulation'])
+            ->first();
+
+        if (!$applicant) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Postulante no encontrado',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        // Verificar si puede editar (no ha confirmado datos)
+        if ($applicant->simulationProcess && !$applicant->simulationProcess->canEditData()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No puede actualizar la foto después de confirmar sus datos',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Eliminar foto anterior si existe
+        if ($applicant->photo_path) {
+            Storage::disk('public')->delete($applicant->photo_path);
+        }
+
+        // Guardar nueva foto
+        $photo = $request->file('photo');
+        $filename = $validated['dni'] . '_' . time() . '.' . $photo->getClientOriginalExtension();
+        $photoPath = $photo->storeAs(
+            'simulation-photos/' . $applicant->exam_simulation_id, 
+            $filename, 
+            'public'
+        );
+
+        // Actualizar postulante
+        $applicant->photo_path = $photoPath;
+        $applicant->save();
+
+        // Marcar en el proceso que subió foto
+        if ($applicant->simulationProcess) {
+            $applicant->simulationProcess->markPhotoUploaded();
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Foto subida exitosamente',
+            'data' => $this->searchByDniAndEmail($validated['dni'], $validated['email']),
+        ], Response::HTTP_OK);
+    }
+
+    /**
+     * Actualizar datos del aplicante (sin foto)
      * PUT /api/simulation-applicants/update
+     * Body JSON: { dni, email, last_name_father?, last_name_mother?, first_names?, phone_mobile?, phone_other? }
      */
     public function update(Request $request)
     {
@@ -132,42 +173,13 @@ class SimulationApplicantController extends Controller
             'first_names' => 'sometimes|string|max:100',
             'phone_mobile' => 'sometimes|nullable|string|max:20',
             'phone_other' => 'sometimes|nullable|string|max:20',
-            'photo' => 'sometimes|nullable|image|mimes:jpeg,jpg,png|max:2048',
-        ], [
-            'photo.image' => 'El archivo debe ser una imagen',
-            'photo.mimes' => 'La foto debe ser formato JPEG, JPG o PNG',
-            'photo.max' => 'La foto no debe superar los 2MB',
         ]);
-
-        // Procesar foto si se envió
-        $photoPath = null;
-        if ($request->hasFile('photo')) {
-            $photo = $request->file('photo');
-            $filename = $validated['dni'] . '_' . time() . '.' . $photo->getClientOriginalExtension();
-            
-            // Obtener simulacro activo para la carpeta
-            $activeSimulation = $this->getActiveExamSimulation();
-            $simulationId = $activeSimulation?->id ?? 'unknown';
-            
-            $photoPath = $photo->storeAs('simulation-photos/' . $simulationId, $filename, 'public');
-        }
-
-        $dataToUpdate = $request->only(['last_name_father', 'last_name_mother', 'first_names', 'phone_mobile', 'phone_other']);
-        
-        if ($photoPath) {
-            $dataToUpdate['photo_path'] = $photoPath;
-        }
 
         $result = $this->updateApplicant(
             $validated['dni'],
             $validated['email'],
-            $dataToUpdate
+            $request->only(['last_name_father', 'last_name_mother', 'first_names', 'phone_mobile', 'phone_other'])
         );
-
-        // Si falló y subimos foto, eliminarla
-        if (!$result['success'] && $photoPath) {
-            Storage::disk('public')->delete($photoPath);
-        }
 
         return response()->json([
             'status' => $result['success'] ? 'success' : 'error',
@@ -179,6 +191,7 @@ class SimulationApplicantController extends Controller
     /**
      * Confirmar datos del aplicante
      * POST /api/simulation-applicants/confirm
+     * Body JSON: { dni, email }
      */
     public function confirmData(Request $request)
     {
@@ -224,6 +237,7 @@ class SimulationApplicantController extends Controller
     /**
      * Marcar pago como completado (uso interno/webhook)
      * POST /api/simulation-applicants/mark-payment
+     * Body JSON: { dni, email }
      */
     public function markPayment(Request $request)
     {
@@ -245,6 +259,7 @@ class SimulationApplicantController extends Controller
      * Completar inscripción - El postulante hace clic en el botón final
      * Envía el correo con todos los datos del postulante y simulacro
      * POST /api/simulation-applicants/complete
+     * Body JSON: { dni, email }
      */
     public function complete(Request $request)
     {
@@ -265,14 +280,11 @@ class SimulationApplicantController extends Controller
     /**
      * Actualizar datos y confirmar en un solo paso
      * POST /api/simulation-applicants/update-and-confirm
-     * 
-     * Este endpoint permite al postulante:
-     * 1. Modificar sus datos personales (si aún puede)
-     * 2. Actualizar su foto (si el simulacro es presencial)
-     * 3. Confirmar que los datos son correctos (bloquea edición futura)
+     * Body JSON: { dni, email, last_name_father?, last_name_mother?, first_names?, phone_mobile?, phone_other? }
      * 
      * Requisitos:
      * - El pago debe estar registrado
+     * - La foto debe estar subida (si es simulacro presencial)
      * - Los datos no deben haber sido confirmados previamente
      */
     public function updateAndConfirm(Request $request)
@@ -285,42 +297,13 @@ class SimulationApplicantController extends Controller
             'first_names' => 'sometimes|string|max:100',
             'phone_mobile' => 'sometimes|nullable|string|max:20',
             'phone_other' => 'sometimes|nullable|string|max:20',
-            'photo' => 'sometimes|nullable|image|mimes:jpeg,jpg,png|max:2048',
-        ], [
-            'photo.image' => 'El archivo debe ser una imagen',
-            'photo.mimes' => 'La foto debe ser formato JPEG, JPG o PNG',
-            'photo.max' => 'La foto no debe superar los 2MB',
         ]);
-
-        // Procesar foto si se envió
-        $photoPath = null;
-        if ($request->hasFile('photo')) {
-            $photo = $request->file('photo');
-            $filename = $validated['dni'] . '_' . time() . '.' . $photo->getClientOriginalExtension();
-            
-            // Obtener simulacro activo para la carpeta
-            $activeSimulation = $this->getActiveExamSimulation();
-            $simulationId = $activeSimulation?->id ?? 'unknown';
-            
-            $photoPath = $photo->storeAs('simulation-photos/' . $simulationId, $filename, 'public');
-        }
-
-        $dataToUpdate = $request->only(['last_name_father', 'last_name_mother', 'first_names', 'phone_mobile', 'phone_other']);
-        
-        if ($photoPath) {
-            $dataToUpdate['photo_path'] = $photoPath;
-        }
 
         $result = $this->updateAndConfirmApplicantData(
             $validated['dni'],
             $validated['email'],
-            $dataToUpdate
+            $request->only(['last_name_father', 'last_name_mother', 'first_names', 'phone_mobile', 'phone_other'])
         );
-
-        // Si falló y subimos foto, eliminarla
-        if (!$result['success'] && $photoPath) {
-            Storage::disk('public')->delete($photoPath);
-        }
 
         return response()->json([
             'status' => $result['success'] ? 'success' : 'error',

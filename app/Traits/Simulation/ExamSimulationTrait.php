@@ -55,6 +55,7 @@ trait ExamSimulationTrait
                     'description' => $activeSimulation->description,
                     'exam_date_start' => $activeSimulation->exam_date_start->format('Y-m-d'),
                     'exam_date_end' => $activeSimulation->exam_date_end->format('Y-m-d'),
+                    'is_virtual' => $activeSimulation->is_virtual,
                 ],
             ];
         }
@@ -75,6 +76,7 @@ trait ExamSimulationTrait
                     'description' => $nextSimulation->description,
                     'exam_date_start' => $nextSimulation->exam_date_start->format('Y-m-d'),
                     'exam_date_end' => $nextSimulation->exam_date_end->format('Y-m-d'),
+                    'is_virtual' => $nextSimulation->is_virtual,
                 ],
             ];
         }

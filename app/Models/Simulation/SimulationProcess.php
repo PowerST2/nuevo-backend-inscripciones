@@ -16,6 +16,7 @@ class SimulationProcess extends Model
         'simulation_applicant_id',
         'pre_registration_at',
         'payment_at',
+        'photo_at',
         'data_confirmation_at',
         'registration_at',
     ];
@@ -23,6 +24,7 @@ class SimulationProcess extends Model
     protected $casts = [
         'pre_registration_at' => 'datetime',
         'payment_at' => 'datetime',
+        'photo_at' => 'datetime',
         'data_confirmation_at' => 'datetime',
         'registration_at' => 'datetime',
     ];
@@ -40,6 +42,20 @@ class SimulationProcess extends Model
     public function hasPaid(): bool
     {
         return !is_null($this->payment_at);
+    }
+
+    public function hasUploadedPhoto(): bool
+    {
+        return !is_null($this->photo_at);
+    }
+
+    /**
+     * Marcar que la foto fue subida
+     */
+    public function markPhotoUploaded(): bool
+    {
+        $this->photo_at = now('America/Lima');
+        return $this->save();
     }
 
     public function confirmData(): bool

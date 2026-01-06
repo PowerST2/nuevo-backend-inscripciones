@@ -15,6 +15,7 @@ return new class extends Migration
             // Usamos datetime para que guarde la hora literal (UTC-5) sin conversiones
             $table->dateTime('pre_registration_at')->nullable();
             $table->dateTime('payment_at')->nullable();
+            $table->dateTime('photo_at')->nullable();
             $table->dateTime('data_confirmation_at')->nullable();
             $table->dateTime('registration_at')->nullable();
             
