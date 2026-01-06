@@ -66,6 +66,10 @@ class SimulationProcessResource extends Resource
                             ->label('Confirmación de Datos')
                             ->disabled()
                             ->displayFormat('d/m/Y H:i'),
+                        DateTimePicker::make('photo_at')
+                            ->label('Foto Cargada')
+                            ->disabled()
+                            ->displayFormat('d/m/Y H:i'),    
                         DateTimePicker::make('registration_at')
                             ->label('Inscripción')
                             ->disabled()
@@ -102,6 +106,14 @@ class SimulationProcessResource extends Resource
                     ->label('Pre-inscripción')
                     ->boolean()
                     ->getStateUsing(fn ($record) => !is_null($record->pre_registration_at))
+                    ->trueIcon(Heroicon::OutlinedCheckCircle)
+                    ->falseIcon(Heroicon::OutlinedXCircle)
+                    ->trueColor('success')
+                    ->falseColor('danger'),
+                IconColumn::make('photo_at')
+                    ->label('Foto')
+                    ->boolean()
+                    ->getStateUsing(fn ($record) => !is_null($record->photo_at))
                     ->trueIcon(Heroicon::OutlinedCheckCircle)
                     ->falseIcon(Heroicon::OutlinedXCircle)
                     ->trueColor('success')
@@ -157,7 +169,6 @@ class SimulationProcessResource extends Resource
                     ),
             ])
             ->recordActions([
-                EditAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

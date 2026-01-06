@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('simulation_applicants', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->unique();
             $table->string('dni', 8);
             $table->string('code', 20)->nullable()->unique();
             $table->string('last_name_father', 50);

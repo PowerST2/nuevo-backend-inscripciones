@@ -11,13 +11,12 @@ use Illuminate\Support\Facades\Notification;
 trait SimulationApplicantTrait
 {
     /**
-     * Buscar aplicante por DNI y email (ambos obligatorios)
-     * Retorna datos sin teléfonos
+     * Buscar aplicante por UUID
+     * Método principal para las APIs
      */
-    public function searchByDniAndEmail(string $dni, string $email): ?array
+    public function searchByUuid(string $uuid): ?array
     {
-        $applicant = SimulationApplicant::where('dni', $dni)
-            ->where('email', $email)
+        $applicant = SimulationApplicant::where('uuid', $uuid)
             ->with(['simulationProcess', 'examSimulation'])
             ->first();
 
@@ -25,8 +24,17 @@ trait SimulationApplicantTrait
             return null;
         }
 
+        return $this->formatApplicantData($applicant);
+    }
+
+    /**
+     * Formatear datos del aplicante para respuesta API
+     */
+    protected function formatApplicantData(SimulationApplicant $applicant): array
+    {
         return [
             'id' => $applicant->id,
+            'uuid' => $applicant->uuid,
             'code' => $applicant->code,
             'dni' => $applicant->dni,
             'last_name_father' => $applicant->last_name_father,
@@ -46,6 +54,26 @@ trait SimulationApplicantTrait
                 'data_confirmation' => $applicant->simulationProcess->data_confirmation_at,
                 'registration' => $applicant->simulationProcess->registration_at,
             ] : null,
+        ];
+    }
+
+    /**
+     * Buscar aplicante por DNI y email (ambos obligatorios)
+     * Retorna datos sin teléfonos
+     */
+    public function searchByDniAndEmail(string $dni, string $email): ?array
+    {
+        $applicant = SimulationApplicant::where('dni', $dni)
+            ->where('email', $email)
+            ->with(['simulationProcess', 'examSimulation'])
+            ->first();
+
+        if (!$applicant) {
+            return null;
+        }
+
+        return [
+            'uuid' => $applicant->uuid,
         ];
     }
 
@@ -109,12 +137,58 @@ trait SimulationApplicantTrait
         return [
             'success' => true,
             'message' => 'Aplicante registrado exitosamente. ' . ($activeSimulation->requiresPhoto() ? 'Recuerde subir su foto.' : ''),
-            'data' => $this->searchByDniAndEmail($applicant->dni, $applicant->email),
+            'data' => $this->searchByUuid($applicant->uuid),
+        ];
+    }
+
+    /**
+     * Actualizar datos del aplicante por UUID (solo si puede editar) - SIN FOTO
+     */
+    public function updateApplicantByUuid(string $uuid, array $data): array
+    {
+        $applicant = SimulationApplicant::where('uuid', $uuid)
+            ->with('simulationProcess')
+            ->first();
+
+        if (!$applicant) {
+            return [
+                'success' => false,
+                'message' => 'Aplicante no encontrado',
+                'data' => null,
+            ];
+        }
+
+        // Verificar si puede editar datos
+        if ($applicant->simulationProcess && !$applicant->simulationProcess->canEditData()) {
+            return [
+                'success' => false,
+                'message' => 'No puede editar sus datos después de confirmarlos',
+                'data' => null,
+            ];
+        }
+
+        // Campos permitidos para actualizar (sin photo_path - eso va por API separada)
+        $allowedFields = [
+            'last_name_father',
+            'last_name_mother',
+            'first_names',
+            'phone_mobile',
+            'phone_other',
+        ];
+
+        $updateData = array_intersect_key($data, array_flip($allowedFields));
+        $applicant->update($updateData);
+
+        return [
+            'success' => true,
+            'message' => 'Datos actualizados exitosamente',
+            'data' => $this->searchByUuid($uuid),
         ];
     }
 
     /**
      * Actualizar datos del aplicante (solo si puede editar) - SIN FOTO
+     * @deprecated Use updateApplicantByUuid instead
      */
     public function updateApplicant(string $dni, string $email, array $data): array
     {
@@ -160,7 +234,65 @@ trait SimulationApplicantTrait
     }
 
     /**
+     * Confirmar datos del aplicante por UUID (bloquea edición)
+     */
+    public function confirmApplicantDataByUuid(string $uuid): array
+    {
+        $applicant = SimulationApplicant::where('uuid', $uuid)
+            ->with(['simulationProcess', 'examSimulation'])
+            ->first();
+
+        if (!$applicant) {
+            return [
+                'success' => false,
+                'message' => 'Aplicante no encontrado',
+            ];
+        }
+
+        if (!$applicant->simulationProcess) {
+            return [
+                'success' => false,
+                'message' => 'Proceso de simulacro no encontrado',
+            ];
+        }
+
+        // Verificar que haya pagado
+        if (!$applicant->simulationProcess->hasPaid()) {
+            return [
+                'success' => false,
+                'message' => 'Debe completar el pago antes de confirmar sus datos',
+            ];
+        }
+
+        // Verificar que haya subido foto si es presencial
+        if ($applicant->requiresPhoto() && !$applicant->simulationProcess->hasUploadedPhoto()) {
+            return [
+                'success' => false,
+                'message' => 'Debe subir su foto antes de confirmar sus datos (simulacro presencial)',
+            ];
+        }
+
+        // Verificar si ya confirmó
+        if (!is_null($applicant->simulationProcess->data_confirmation_at)) {
+            return [
+                'success' => false,
+                'message' => 'Los datos ya fueron confirmados anteriormente',
+            ];
+        }
+
+        // Confirmar datos (solo data_confirmation, NO registration)
+        $applicant->simulationProcess->confirmData();
+
+        return [
+            'success' => true,
+            'message' => 'Datos confirmados exitosamente',
+            'data' => $this->searchByUuid($uuid),
+        ];
+    }
+
+    /**
      * Confirmar datos del aplicante (bloquea edición)
+     * @deprecated Use confirmApplicantDataByUuid instead
      */
     public function confirmApplicantData(string $dni, string $email): array
     {
@@ -303,8 +435,233 @@ trait SimulationApplicantTrait
     }
 
     /**
+     * Actualizar datos y confirmar en un solo paso por UUID
+     */
+    public function updateAndConfirmApplicantDataByUuid(string $uuid, array $data): array
+    {
+        $applicant = SimulationApplicant::where('uuid', $uuid)
+            ->with(['simulationProcess', 'examSimulation'])
+            ->first();
+
+        if (!$applicant) {
+            return [
+                'success' => false,
+                'message' => 'Aplicante no encontrado',
+            ];
+        }
+
+        if (!$applicant->simulationProcess) {
+            return [
+                'success' => false,
+                'message' => 'Proceso de simulacro no encontrado',
+            ];
+        }
+
+        // Verificar que haya pagado
+        if (!$applicant->simulationProcess->hasPaid()) {
+            return [
+                'success' => false,
+                'message' => 'Debe completar el pago antes de confirmar sus datos',
+            ];
+        }
+
+        // Verificar si ya confirmó (no puede editar ni confirmar de nuevo)
+        if (!$applicant->simulationProcess->canEditData()) {
+            return [
+                'success' => false,
+                'message' => 'Los datos ya fueron confirmados anteriormente y no pueden ser modificados',
+            ];
+        }
+
+        // Verificar que haya subido foto si es presencial
+        if ($applicant->requiresPhoto() && !$applicant->simulationProcess->hasUploadedPhoto()) {
+            return [
+                'success' => false,
+                'message' => 'Debe subir su foto antes de confirmar sus datos (simulacro presencial)',
+            ];
+        }
+
+        // Actualizar datos si se proporcionaron
+        $allowedFields = [
+            'last_name_father',
+            'last_name_mother',
+            'first_names',
+            'phone_mobile',
+            'phone_other',
+        ];
+
+        $updateData = array_filter(
+            array_intersect_key($data, array_flip($allowedFields)),
+            fn($value) => !is_null($value) && $value !== ''
+        );
+
+        if (!empty($updateData)) {
+            $applicant->update($updateData);
+        }
+
+        // Confirmar datos
+        $applicant->simulationProcess->confirmData();
+
+        return [
+            'success' => true,
+            'message' => 'Datos actualizados y confirmados exitosamente',
+            'data' => $this->searchByUuid($uuid),
+        ];
+    }
+
+    /**
+     * Completar inscripción por UUID - El postulante hace clic en el botón final
+     */
+    public function completeRegistrationByUuid(string $uuid): array
+    {
+        $applicant = SimulationApplicant::where('uuid', $uuid)
+            ->with(['simulationProcess', 'examSimulation'])
+            ->first();
+
+        if (!$applicant) {
+            return [
+                'success' => false,
+                'message' => 'Aplicante no encontrado',
+            ];
+        }
+
+        if (!$applicant->simulationProcess) {
+            return [
+                'success' => false,
+                'message' => 'Proceso de simulacro no encontrado',
+            ];
+        }
+
+        // Verificar que haya pagado
+        if (!$applicant->simulationProcess->hasPaid()) {
+            return [
+                'success' => false,
+                'message' => 'Debe completar el pago antes de finalizar la inscripción',
+            ];
+        }
+
+        // Verificar que haya confirmado datos
+        if (is_null($applicant->simulationProcess->data_confirmation_at)) {
+            return [
+                'success' => false,
+                'message' => 'Debe confirmar sus datos antes de finalizar la inscripción',
+            ];
+        }
+
+        // Verificar si ya completó la inscripción
+        if (!is_null($applicant->simulationProcess->registration_at)) {
+            return [
+                'success' => false,
+                'message' => 'La inscripción ya fue completada anteriormente',
+            ];
+        }
+
+        // Completar inscripción
+        $applicant->simulationProcess->completeRegistration();
+
+        // Refrescar el applicant para obtener el código generado
+        $applicant->refresh();
+
+        // Enviar correo con datos del postulante y simulacro
+        $this->sendCompletedNotification($applicant);
+
+        return [
+            'success' => true,
+            'message' => 'Inscripción completada exitosamente. Se ha enviado un correo con tu código: ' . $applicant->code,
+            'data' => $this->searchByUuid($uuid),
+        ];
+    }
+
+    /**
+     * Marcar pago como completado por UUID
+     */
+    public function markPaymentCompleteByUuid(string $uuid): array
+    {
+        $applicant = SimulationApplicant::where('uuid', $uuid)
+            ->with('simulationProcess')
+            ->first();
+
+        if (!$applicant) {
+            return [
+                'success' => false,
+                'message' => 'Aplicante no encontrado',
+            ];
+        }
+
+        if (!$applicant->simulationProcess) {
+            return [
+                'success' => false,
+                'message' => 'Proceso de simulacro no encontrado',
+            ];
+        }
+
+        if (!is_null($applicant->simulationProcess->payment_at)) {
+            return [
+                'success' => false,
+                'message' => 'El pago ya fue registrado anteriormente',
+            ];
+        }
+
+        $applicant->simulationProcess->markPaymentComplete();
+
+        return [
+            'success' => true,
+            'message' => 'Pago registrado exitosamente',
+            'data' => $this->searchByUuid($uuid),
+        ];
+    }
+
+    /**
+     * Verificar estado del proceso de un aplicante por UUID
+     */
+    public function getProcessStatusByUuid(string $uuid): array
+    {
+        $applicant = SimulationApplicant::where('uuid', $uuid)
+            ->with(['simulationProcess', 'examSimulation'])
+            ->first();
+
+        if (!$applicant) {
+            return [
+                'success' => false,
+                'message' => 'Aplicante no encontrado',
+                'data' => null,
+            ];
+        }
+
+        $process = $applicant->simulationProcess;
+
+        return [
+            'success' => true,
+            'message' => 'Estado del proceso obtenido exitosamente',
+            'data' => [
+                'uuid' => $applicant->uuid,
+                'dni' => $applicant->dni,
+                'full_name' => $applicant->full_name,
+                'email' => $applicant->email,
+                'exam_simulation' => $applicant->examSimulation->description ?? null,
+                'requires_photo' => $applicant->requiresPhoto(),
+                'has_photo' => $applicant->hasPhoto(),
+                'process' => $process ? [
+                    'pre_registration' => !is_null($process->pre_registration_at),
+                    'pre_registration_at' => $process->pre_registration_at,
+                    'payment' => !is_null($process->payment_at),
+                    'payment_at' => $process->payment_at,
+                    'photo_uploaded' => !is_null($process->photo_at),
+                    'photo_at' => $process->photo_at,
+                    'data_confirmed' => !is_null($process->data_confirmation_at),
+                    'data_confirmation_at' => $process->data_confirmation_at,
+                    'registration_completed' => !is_null($process->registration_at),
+                    'registration_at' => $process->registration_at,
+                    'can_edit_data' => $process->canEditData(),
+                ] : null,
+            ],
+        ];
+    }
+
+    /**
      * Completar inscripción - El postulante hace clic en el botón final
      * Marca registration como true y envía el correo con todos los datos
+     * @deprecated Use completeRegistrationByUuid instead
      */
     public function completeRegistration(string $dni, string $email): array
     {

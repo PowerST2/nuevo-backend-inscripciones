@@ -16,6 +16,27 @@ class SimulationApplicantController extends Controller
     use SimulationApplicantTrait;
 
     /**
+     * Buscar aplicante por UUID
+     * GET /api/simulation-applicants/{uuid}
+     */
+    public function show(string $uuid)
+    {
+        $applicant = $this->searchByUuid($uuid);
+
+        if (!$applicant) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se encontró un aplicante con el UUID proporcionado',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $applicant,
+        ], Response::HTTP_OK);
+    }
+
+    /**
      * Buscar aplicante por DNI y email (ambos obligatorios)
      * POST /api/simulation-applicants/search
      * Body: { "dni": "12345678", "email": "test@email.com" }
@@ -90,10 +111,191 @@ class SimulationApplicantController extends Controller
     }
 
     /**
-     * Subir o actualizar foto del postulante
+     * Subir o actualizar foto del postulante por UUID
+     * POST /api/simulation-applicants/{uuid}/upload-photo
+     * Content-Type: multipart/form-data
+     * Body: { photo }
+     */
+    public function uploadPhotoByUuid(Request $request, string $uuid)
+    {
+        $validated = $request->validate([
+            'photo' => 'required|image|mimes:jpeg,jpg,png|max:2048',
+        ], [
+            'photo.required' => 'La foto es obligatoria',
+            'photo.image' => 'El archivo debe ser una imagen',
+            'photo.mimes' => 'La foto debe ser formato JPEG, JPG o PNG',
+            'photo.max' => 'La foto no debe superar los 2MB',
+        ]);
+
+        $applicant = SimulationApplicant::where('uuid', $uuid)
+            ->with(['simulationProcess', 'examSimulation'])
+            ->first();
+
+        if (!$applicant) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Postulante no encontrado',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        // Verificar si puede editar (no ha confirmado datos)
+        if ($applicant->simulationProcess && !$applicant->simulationProcess->canEditData()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No puede actualizar la foto después de confirmar sus datos',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Eliminar foto anterior si existe
+        if ($applicant->photo_path) {
+            Storage::disk('public')->delete($applicant->photo_path);
+        }
+
+        // Guardar nueva foto
+        $photo = $request->file('photo');
+        $filename = $applicant->dni . '_' . time() . '.' . $photo->getClientOriginalExtension();
+        $photoPath = $photo->storeAs(
+            'simulation-photos/' . $applicant->exam_simulation_id, 
+            $filename, 
+            'public'
+        );
+
+        // Actualizar postulante
+        $applicant->photo_path = $photoPath;
+        $applicant->save();
+
+        // Marcar en el proceso que subió foto
+        if ($applicant->simulationProcess) {
+            $applicant->simulationProcess->markPhotoUploaded();
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Foto subida exitosamente',
+            'data' => $this->searchByUuid($uuid),
+        ], Response::HTTP_OK);
+    }
+
+    /**
+     * Actualizar datos del aplicante por UUID (sin foto)
+     * PUT /api/simulation-applicants/{uuid}
+     * Body JSON: { last_name_father?, last_name_mother?, first_names?, phone_mobile?, phone_other? }
+     */
+    public function updateByUuid(Request $request, string $uuid)
+    {
+        $validated = $request->validate([
+            'last_name_father' => 'sometimes|string|max:50',
+            'last_name_mother' => 'sometimes|string|max:50',
+            'first_names' => 'sometimes|string|max:100',
+            'phone_mobile' => 'sometimes|nullable|string|max:20',
+            'phone_other' => 'sometimes|nullable|string|max:20',
+        ]);
+
+        $result = $this->updateApplicantByUuid(
+            $uuid,
+            $request->only(['last_name_father', 'last_name_mother', 'first_names', 'phone_mobile', 'phone_other'])
+        );
+
+        return response()->json([
+            'status' => $result['success'] ? 'success' : 'error',
+            'message' => $result['message'],
+            'data' => $result['data'] ?? null,
+        ], $result['success'] ? Response::HTTP_OK : Response::HTTP_BAD_REQUEST);
+    }
+
+    /**
+     * Confirmar datos del aplicante por UUID
+     * POST /api/simulation-applicants/{uuid}/confirm
+     */
+    public function confirmDataByUuid(string $uuid)
+    {
+        $result = $this->confirmApplicantDataByUuid($uuid);
+
+        return response()->json([
+            'status' => $result['success'] ? 'success' : 'error',
+            'message' => $result['message'],
+            'data' => $result['data'] ?? null,
+        ], $result['success'] ? Response::HTTP_OK : Response::HTTP_BAD_REQUEST);
+    }
+
+    /**
+     * Obtener estado del proceso por UUID
+     * GET /api/simulation-applicants/{uuid}/status
+     */
+    public function getStatusByUuid(string $uuid)
+    {
+        $result = $this->getProcessStatusByUuid($uuid);
+
+        return response()->json([
+            'status' => $result['success'] ? 'success' : 'error',
+            'message' => $result['message'],
+            'data' => $result['data'] ?? null,
+        ], $result['success'] ? Response::HTTP_OK : Response::HTTP_NOT_FOUND);
+    }
+
+    /**
+     * Marcar pago como completado por UUID
+     * POST /api/simulation-applicants/{uuid}/mark-payment
+     */
+    public function markPaymentByUuid(string $uuid)
+    {
+        $result = $this->markPaymentCompleteByUuid($uuid);
+
+        return response()->json([
+            'status' => $result['success'] ? 'success' : 'error',
+            'message' => $result['message'],
+            'data' => $result['data'] ?? null,
+        ], $result['success'] ? Response::HTTP_OK : Response::HTTP_BAD_REQUEST);
+    }
+
+    /**
+     * Completar inscripción por UUID
+     * POST /api/simulation-applicants/{uuid}/complete
+     */
+    public function completeByUuid(string $uuid)
+    {
+        $result = $this->completeRegistrationByUuid($uuid);
+
+        return response()->json([
+            'status' => $result['success'] ? 'success' : 'error',
+            'message' => $result['message'],
+            'data' => $result['data'] ?? null,
+        ], $result['success'] ? Response::HTTP_OK : Response::HTTP_BAD_REQUEST);
+    }
+
+    /**
+     * Actualizar datos y confirmar en un solo paso por UUID
+     * POST /api/simulation-applicants/{uuid}/update-and-confirm
+     * Body JSON: { last_name_father?, last_name_mother?, first_names?, phone_mobile?, phone_other? }
+     */
+    public function updateAndConfirmByUuid(Request $request, string $uuid)
+    {
+        $validated = $request->validate([
+            'last_name_father' => 'sometimes|string|max:50',
+            'last_name_mother' => 'sometimes|string|max:50',
+            'first_names' => 'sometimes|string|max:100',
+            'phone_mobile' => 'sometimes|nullable|string|max:20',
+            'phone_other' => 'sometimes|nullable|string|max:20',
+        ]);
+
+        $result = $this->updateAndConfirmApplicantDataByUuid(
+            $uuid,
+            $request->only(['last_name_father', 'last_name_mother', 'first_names', 'phone_mobile', 'phone_other'])
+        );
+
+        return response()->json([
+            'status' => $result['success'] ? 'success' : 'error',
+            'message' => $result['message'],
+            'data' => $result['data'] ?? null,
+        ], $result['success'] ? Response::HTTP_OK : Response::HTTP_BAD_REQUEST);
+    }
+
+    /**
+     * Subir o actualizar foto del postulante (legacy - usar uploadPhotoByUuid)
      * POST /api/simulation-applicants/upload-photo
      * Content-Type: multipart/form-data
      * Body: { dni, email, photo }
+     * @deprecated Use uploadPhotoByUuid instead
      */
     public function uploadPhoto(Request $request)
     {

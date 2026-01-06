@@ -4,12 +4,14 @@ namespace App\Models\Simulation;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Str;
 
 class SimulationApplicant extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'uuid',
         'code',
         'dni',
         'last_name_father',
@@ -76,6 +78,20 @@ class SimulationApplicant extends Model
     public function hasPhoto(): bool
     {
         return !empty($this->photo_path);
+    }
+
+    /**
+     * Boot method para generar UUID automáticamente
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->uuid)) {
+                $model->uuid = (string) Str::uuid();
+            }
+        });
     }
 
     /**
