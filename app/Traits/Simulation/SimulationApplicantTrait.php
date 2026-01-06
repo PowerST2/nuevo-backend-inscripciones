@@ -7,6 +7,7 @@ use App\Models\Simulation\SimulationApplicant;
 use App\Notifications\Simulation\SimulationCompletedNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 
 trait SimulationApplicantTrait
 {
@@ -147,9 +148,16 @@ trait SimulationApplicantTrait
             'first_names',
             'phone_mobile',
             'phone_other',
+            'photo_path',
         ];
 
         $updateData = array_intersect_key($data, array_flip($allowedFields));
+
+        // Si se actualiza la foto, eliminar la anterior
+        if (isset($updateData['photo_path']) && $applicant->photo_path) {
+            Storage::disk('public')->delete($applicant->photo_path);
+        }
+
         $applicant->update($updateData);
 
         return [
@@ -205,6 +213,97 @@ trait SimulationApplicantTrait
         return [
             'success' => true,
             'message' => 'Datos confirmados exitosamente',
+            'data' => $this->searchByDniAndEmail($dni, $email),
+        ];
+    }
+
+    /**
+     * Actualizar datos y confirmar en un solo paso
+     * 
+     * Este método permite al postulante:
+     * 1. Modificar sus datos personales (si aún puede editarlos)
+     * 2. Actualizar su foto (si el simulacro es presencial)
+     * 3. Confirmar que los datos son correctos (bloquea edición futura)
+     * 
+     * Requisitos:
+     * - El pago debe estar registrado
+     * - Los datos no deben haber sido confirmados previamente
+     */
+    public function updateAndConfirmApplicantData(string $dni, string $email, array $data): array
+    {
+        $applicant = SimulationApplicant::where('dni', $dni)
+            ->where('email', $email)
+            ->with(['simulationProcess', 'examSimulation'])
+            ->first();
+
+        if (!$applicant) {
+            return [
+                'success' => false,
+                'message' => 'Aplicante no encontrado',
+            ];
+        }
+
+        if (!$applicant->simulationProcess) {
+            return [
+                'success' => false,
+                'message' => 'Proceso de simulacro no encontrado',
+            ];
+        }
+
+        // Verificar que haya pagado
+        if (!$applicant->simulationProcess->hasPaid()) {
+            return [
+                'success' => false,
+                'message' => 'Debe completar el pago antes de confirmar sus datos',
+            ];
+        }
+
+        // Verificar si ya confirmó (no puede editar ni confirmar de nuevo)
+        if (!$applicant->simulationProcess->canEditData()) {
+            return [
+                'success' => false,
+                'message' => 'Los datos ya fueron confirmados anteriormente y no pueden ser modificados',
+            ];
+        }
+
+        // Si el simulacro requiere foto y no tiene foto, verificar que se esté enviando
+        if ($applicant->requiresPhoto() && !$applicant->hasPhoto() && !isset($data['photo_path'])) {
+            return [
+                'success' => false,
+                'message' => 'La foto es obligatoria para simulacros presenciales. Debe subir una foto antes de confirmar.',
+            ];
+        }
+
+        // Actualizar datos si se proporcionaron
+        $allowedFields = [
+            'last_name_father',
+            'last_name_mother',
+            'first_names',
+            'phone_mobile',
+            'phone_other',
+            'photo_path',
+        ];
+
+        $updateData = array_filter(
+            array_intersect_key($data, array_flip($allowedFields)),
+            fn($value) => !is_null($value) && $value !== ''
+        );
+
+        if (!empty($updateData)) {
+            // Si se actualiza la foto, eliminar la anterior
+            if (isset($updateData['photo_path']) && $applicant->photo_path) {
+                Storage::disk('public')->delete($applicant->photo_path);
+            }
+
+            $applicant->update($updateData);
+        }
+
+        // Confirmar datos
+        $applicant->simulationProcess->confirmData();
+
+        return [
+            'success' => true,
+            'message' => 'Datos actualizados y confirmados exitosamente',
             'data' => $this->searchByDniAndEmail($dni, $email),
         ];
     }

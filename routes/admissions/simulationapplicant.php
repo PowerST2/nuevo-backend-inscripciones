@@ -11,3 +11,4 @@ Route::put('/simulation-applicants/update', [SimulationApplicantController::clas
 Route::post('/simulation-applicants/confirm', [SimulationApplicantController::class, 'confirmData'])->name('api.simulation-applicants.confirm');
 Route::post('/simulation-applicants/mark-payment', [SimulationApplicantController::class, 'markPayment'])->name('api.simulation-applicants.mark-payment');
 Route::post('/simulation-applicants/complete', [SimulationApplicantController::class, 'complete'])->name('api.simulation-applicants.complete');
+Route::post('/simulation-applicants/update-and-confirm', [SimulationApplicantController::class, 'updateAndConfirm'])->name('api.simulation-applicants.update-and-confirm');
