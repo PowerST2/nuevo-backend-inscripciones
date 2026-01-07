@@ -29,6 +29,7 @@ class ExamSimulationController extends Controller
                     'description' => $simulation->description,
                     'exam_date_start' => $simulation->exam_date_start->format('d/m/Y'),
                     'exam_date_end' => $simulation->exam_date_end->format('d/m/Y'),
+                    'exam_date' => $simulation->exam_date?->format('d/m/Y'),
                     'is_virtual' => $simulation->is_virtual,
                 ]
             ], Response::HTTP_OK);

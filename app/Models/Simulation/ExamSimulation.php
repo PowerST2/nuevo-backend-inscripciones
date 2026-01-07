@@ -20,6 +20,7 @@ class ExamSimulation extends Model
         'description',
         'exam_date_start',
         'exam_date_end',
+        'exam_date',
         'active',
         'tariff_id',
         'is_virtual',
@@ -28,6 +29,7 @@ class ExamSimulation extends Model
     protected $casts = [
         'exam_date_start' => 'date',
         'exam_date_end' => 'date',
+        'exam_date' => 'date',
         'active' => 'boolean',
         'is_virtual' => 'boolean',
     ];
