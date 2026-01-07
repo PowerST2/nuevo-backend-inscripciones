@@ -3,49 +3,56 @@
 use App\Http\Controllers\Api\Simulation\SimulationApplicantController;
 use Illuminate\Support\Facades\Route;
 
-// ===== RUTAS SIN UUID (Para registro inicial y busqueda) =====
-// Registro nuevo (devuelve UUID)
-Route::post('/simulation-applicants', [SimulationApplicantController::class, 'store'])->name('api.simulation-applicants.store');
+// ===== RUTAS PÚBLICAS (Sin autenticación requerida) =====
 
-// Buscar por DNI y email (para recuperar UUID)
-Route::post('/simulation-applicants/search', [SimulationApplicantController::class, 'search'])->name('api.simulation-applicants.search');
+// Registro nuevo postulante (POST - sin UUID aún)
+Route::post('/simulation-applicants', [SimulationApplicantController::class, 'store'])
+    ->name('api.simulation-applicants.store');
 
-// ===== NUEVAS RUTAS CON UUID (RECOMENDADAS) =====
-// Confirmar datos por UUID (UUID en body) - DEBE IR ANTES DE LA RUTA CON {uuid}
-Route::put('/simulation-applicants/confirm', [SimulationApplicantController::class, 'confirmDataByUuid'])->name('api.simulation-applicants.confirm-by-uuid');
+// Buscar postulante por DNI y email (para obtener UUID)
+Route::post('/simulation-applicants/search', [SimulationApplicantController::class, 'search'])
+    ->name('api.simulation-applicants.search');
 
-// Completar inscripción por UUID (UUID en body)
-Route::put('/simulation-applicants/complete', [SimulationApplicantController::class, 'completeByUuid'])->name('api.simulation-applicants.complete-by-uuid');
+// ===== RUTAS CON UUID (Con autenticación del postulante) =====
+// NOTA: Las rutas sin parámetros {uuid} deben ir ANTES de las que tienen {uuid}
 
-// Obtener aplicante por UUID
-Route::get('/simulation-applicants/{uuid}', [SimulationApplicantController::class, 'show'])->name('api.simulation-applicants.show');
+// Confirmar datos (PUT - UUID en body)
+Route::put('/simulation-applicants/confirm', [SimulationApplicantController::class, 'confirmDataByUuid'])
+    ->name('api.simulation-applicants.confirm-by-uuid');
 
-// Actualizar datos por UUID
-Route::put('/simulation-applicants/{uuid}', [SimulationApplicantController::class, 'updateByUuid'])->name('api.simulation-applicants.update-by-uuid');
+// Completar inscripción (PUT - UUID en body)
+Route::put('/simulation-applicants/complete', [SimulationApplicantController::class, 'completeByUuid'])
+    ->name('api.simulation-applicants.complete-by-uuid');
 
-// Subir foto por UUID
-Route::post('/simulation-applicants/{uuid}/upload-photo', [SimulationApplicantController::class, 'uploadPhotoByUuid'])->name('api.simulation-applicants.upload-photo-by-uuid');
+// Obtener información del postulante (GET - UUID en URL)
+Route::get('/simulation-applicants/{uuid}', [SimulationApplicantController::class, 'show'])
+    ->name('api.simulation-applicants.show');
 
-// Obtener estado del proceso por UUID
-Route::get('/simulation-applicants/{uuid}/status', [SimulationApplicantController::class, 'getStatusByUuid'])->name('api.simulation-applicants.status-by-uuid');
+// Actualizar datos del postulante (PUT - UUID en URL)
+Route::put('/simulation-applicants/{uuid}', [SimulationApplicantController::class, 'updateByUuid'])
+    ->name('api.simulation-applicants.update-by-uuid');
 
-// Verificar si pagó por UUID
-Route::get('/simulation-applicants/{uuid}/has-paid', [SimulationApplicantController::class, 'hasPaid'])->name('api.simulation-applicants.has-paid');
+// Subir foto del postulante (POST - UUID en URL)
+Route::post('/simulation-applicants/{uuid}/upload-photo', [SimulationApplicantController::class, 'uploadPhotoByUuid'])
+    ->name('api.simulation-applicants.upload-photo-by-uuid');
 
-// Estado de la foto por UUID
-Route::get('/simulation-applicants/{uuid}/photo-status', [SimulationApplicantController::class, 'getPhotoStatus'])->name('api.simulation-applicants.photo-status');
+// Obtener estado del proceso de inscripción (GET - UUID en URL)
+Route::get('/simulation-applicants/{uuid}/status', [SimulationApplicantController::class, 'getStatusByUuid'])
+    ->name('api.simulation-applicants.status-by-uuid');
 
-// Marcar pago por UUID
-Route::post('/simulation-applicants/{uuid}/mark-payment', [SimulationApplicantController::class, 'markPaymentByUuid'])->name('api.simulation-applicants.mark-payment-by-uuid');
+// Verificar si el postulante ha pagado (GET - UUID en URL)
+Route::get('/simulation-applicants/{uuid}/has-paid', [SimulationApplicantController::class, 'hasPaid'])
+    ->name('api.simulation-applicants.has-paid');
 
-// Actualizar y confirmar por UUID
-Route::post('/simulation-applicants/{uuid}/update-and-confirm', [SimulationApplicantController::class, 'updateAndConfirmByUuid'])->name('api.simulation-applicants.update-and-confirm-by-uuid');
+// Obtener estado de la foto (GET - UUID en URL)
+Route::get('/simulation-applicants/{uuid}/photo-status', [SimulationApplicantController::class, 'getPhotoStatus'])
+    ->name('api.simulation-applicants.photo-status');
 
-// ===== RUTAS LEGACY (DEPRECATED - usar rutas con UUID) =====
-Route::get('/simulation-applicants/status', [SimulationApplicantController::class, 'getStatus'])->name('api.simulation-applicants.status');
-Route::put('/simulation-applicants/update', [SimulationApplicantController::class, 'update'])->name('api.simulation-applicants.update');
-Route::post('/simulation-applicants/upload-photo', [SimulationApplicantController::class, 'uploadPhoto'])->name('api.simulation-applicants.upload-photo');
-Route::post('/simulation-applicants/confirm', [SimulationApplicantController::class, 'confirmData'])->name('api.simulation-applicants.confirm');
-Route::post('/simulation-applicants/mark-payment', [SimulationApplicantController::class, 'markPayment'])->name('api.simulation-applicants.mark-payment');
-Route::post('/simulation-applicants/complete', [SimulationApplicantController::class, 'complete'])->name('api.simulation-applicants.complete');
-Route::post('/simulation-applicants/update-and-confirm', [SimulationApplicantController::class, 'updateAndConfirm'])->name('api.simulation-applicants.update-and-confirm');
+// Marcar pago (POST - UUID en URL)
+Route::post('/simulation-applicants/{uuid}/mark-payment', [SimulationApplicantController::class, 'markPaymentByUuid'])
+    ->name('api.simulation-applicants.mark-payment-by-uuid');
+
+// Actualizar datos y confirmar en un paso (POST - UUID en URL)
+Route::post('/simulation-applicants/{uuid}/update-and-confirm', [SimulationApplicantController::class, 'updateAndConfirmByUuid'])
+    ->name('api.simulation-applicants.update-and-confirm-by-uuid');
+
