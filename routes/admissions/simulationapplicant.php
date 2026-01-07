@@ -19,6 +19,9 @@ Route::post('/simulation-applicants/{uuid}/confirm', [SimulationApplicantControl
 // Estado del proceso por UUID
 Route::get('/simulation-applicants/{uuid}/status', [SimulationApplicantController::class, 'getStatusByUuid'])->name('api.simulation-applicants.status-by-uuid');
 
+// Verificar si pagó por UUID
+Route::get('/simulation-applicants/{uuid}/has-paid', [SimulationApplicantController::class, 'hasPaid'])->name('api.simulation-applicants.has-paid');
+
 // Marcar pago por UUID
 Route::post('/simulation-applicants/{uuid}/mark-payment', [SimulationApplicantController::class, 'markPaymentByUuid'])->name('api.simulation-applicants.mark-payment-by-uuid');
 

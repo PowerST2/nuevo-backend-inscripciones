@@ -11,12 +11,19 @@ use Illuminate\Support\Facades\Notification;
 trait SimulationApplicantTrait
 {
     /**
-     * Buscar aplicante por UUID
+     * Buscar aplicante por UUID (solo del simulacro activo)
      * Método principal para las APIs
      */
     public function searchByUuid(string $uuid): ?array
     {
+        $activeSimulation = $this->getActiveExamSimulation();
+
+        if (!$activeSimulation) {
+            return null;
+        }
+
         $applicant = SimulationApplicant::where('uuid', $uuid)
+            ->where('exam_simulation_id', $activeSimulation->id)
             ->with(['simulationProcess', 'examSimulation'])
             ->first();
 
@@ -25,6 +32,24 @@ trait SimulationApplicantTrait
         }
 
         return $this->formatApplicantData($applicant);
+    }
+
+    /**
+     * Obtener aplicante por UUID (solo del simulacro activo)
+     * Retorna el modelo completo
+     */
+    public function getApplicantByUuid(string $uuid): ?SimulationApplicant
+    {
+        $activeSimulation = $this->getActiveExamSimulation();
+
+        if (!$activeSimulation) {
+            return null;
+        }
+
+        return SimulationApplicant::where('uuid', $uuid)
+            ->where('exam_simulation_id', $activeSimulation->id)
+            ->with(['simulationProcess', 'examSimulation'])
+            ->first();
     }
 
     /**
@@ -58,13 +83,20 @@ trait SimulationApplicantTrait
     }
 
     /**
-     * Buscar aplicante por DNI y email (ambos obligatorios)
-     * Retorna datos sin teléfonos
+     * Buscar aplicante por DNI y email (solo del simulacro activo)
+     * Retorna UUID si existe
      */
     public function searchByDniAndEmail(string $dni, string $email): ?array
     {
+        $activeSimulation = $this->getActiveExamSimulation();
+
+        if (!$activeSimulation) {
+            return null;
+        }
+
         $applicant = SimulationApplicant::where('dni', $dni)
             ->where('email', $email)
+            ->where('exam_simulation_id', $activeSimulation->id)
             ->with(['simulationProcess', 'examSimulation'])
             ->first();
 
@@ -146,14 +178,12 @@ trait SimulationApplicantTrait
      */
     public function updateApplicantByUuid(string $uuid, array $data): array
     {
-        $applicant = SimulationApplicant::where('uuid', $uuid)
-            ->with('simulationProcess')
-            ->first();
+        $applicant = $this->getApplicantByUuid($uuid);
 
         if (!$applicant) {
             return [
                 'success' => false,
-                'message' => 'Aplicante no encontrado',
+                'message' => 'Aplicante no encontrado en el simulacro activo',
                 'data' => null,
             ];
         }
@@ -238,14 +268,12 @@ trait SimulationApplicantTrait
      */
     public function confirmApplicantDataByUuid(string $uuid): array
     {
-        $applicant = SimulationApplicant::where('uuid', $uuid)
-            ->with(['simulationProcess', 'examSimulation'])
-            ->first();
+        $applicant = $this->getApplicantByUuid($uuid);
 
         if (!$applicant) {
             return [
                 'success' => false,
-                'message' => 'Aplicante no encontrado',
+                'message' => 'Aplicante no encontrado en el simulacro activo',
             ];
         }
 
@@ -439,14 +467,12 @@ trait SimulationApplicantTrait
      */
     public function updateAndConfirmApplicantDataByUuid(string $uuid, array $data): array
     {
-        $applicant = SimulationApplicant::where('uuid', $uuid)
-            ->with(['simulationProcess', 'examSimulation'])
-            ->first();
+        $applicant = $this->getApplicantByUuid($uuid);
 
         if (!$applicant) {
             return [
                 'success' => false,
-                'message' => 'Aplicante no encontrado',
+                'message' => 'Aplicante no encontrado en el simulacro activo',
             ];
         }
 
@@ -514,14 +540,12 @@ trait SimulationApplicantTrait
      */
     public function completeRegistrationByUuid(string $uuid): array
     {
-        $applicant = SimulationApplicant::where('uuid', $uuid)
-            ->with(['simulationProcess', 'examSimulation'])
-            ->first();
+        $applicant = $this->getApplicantByUuid($uuid);
 
         if (!$applicant) {
             return [
                 'success' => false,
-                'message' => 'Aplicante no encontrado',
+                'message' => 'Aplicante no encontrado en el simulacro activo',
             ];
         }
 
@@ -577,14 +601,12 @@ trait SimulationApplicantTrait
      */
     public function markPaymentCompleteByUuid(string $uuid): array
     {
-        $applicant = SimulationApplicant::where('uuid', $uuid)
-            ->with('simulationProcess')
-            ->first();
+        $applicant = $this->getApplicantByUuid($uuid);
 
         if (!$applicant) {
             return [
                 'success' => false,
-                'message' => 'Aplicante no encontrado',
+                'message' => 'Aplicante no encontrado en el simulacro activo',
             ];
         }
 
@@ -616,14 +638,12 @@ trait SimulationApplicantTrait
      */
     public function getProcessStatusByUuid(string $uuid): array
     {
-        $applicant = SimulationApplicant::where('uuid', $uuid)
-            ->with(['simulationProcess', 'examSimulation'])
-            ->first();
+        $applicant = $this->getApplicantByUuid($uuid);
 
         if (!$applicant) {
             return [
                 'success' => false,
-                'message' => 'Aplicante no encontrado',
+                'message' => 'Aplicante no encontrado en el simulacro activo',
                 'data' => null,
             ];
         }

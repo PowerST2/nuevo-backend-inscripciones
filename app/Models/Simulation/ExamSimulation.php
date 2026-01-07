@@ -3,11 +3,14 @@
 namespace App\Models\Simulation;
 
 use App\Models\Tariff;
+use App\Observers\Simulation\ExamSimulationObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[ObservedBy([ExamSimulationObserver::class])]
 class ExamSimulation extends Model
 {
     use HasFactory;

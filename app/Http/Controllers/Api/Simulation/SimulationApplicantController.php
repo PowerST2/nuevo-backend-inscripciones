@@ -37,6 +37,29 @@ class SimulationApplicantController extends Controller
     }
 
     /**
+     * Verificar si el aplicante ha pagado
+     * GET /api/simulation-applicants/{uuid}/has-paid
+     */
+    public function hasPaid(string $uuid)
+    {
+        $applicant = $this->getApplicantByUuid($uuid);
+
+        if (!$applicant) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Postulante no encontrado en el simulacro activo',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $hasPaid = $applicant->simulationProcess?->hasPaid() ?? false;
+
+        return response()->json([
+            'status' => 'success',
+            'has_paid' => $hasPaid,
+        ], Response::HTTP_OK);
+    }
+
+    /**
      * Buscar aplicante por DNI y email (ambos obligatorios)
      * POST /api/simulation-applicants/search
      * Body: { "dni": "12345678", "email": "test@email.com" }
@@ -48,18 +71,18 @@ class SimulationApplicantController extends Controller
 
         if (!$dni || !$email) {
             return response()->json([
-                'status' => 'error',
+                'status' => 'sucess',
                 'message' => 'Los campos dni y email son obligatorios',
-            ], Response::HTTP_BAD_REQUEST);
+            ], Response::HTTP_OK);
         }
 
         $applicant = $this->searchByDniAndEmail($dni, $email);
 
         if (!$applicant) {
             return response()->json([
-                'status' => 'error',
+                'status' => 'sucess',
                 'message' => 'No se encontró un aplicante con los datos proporcionados',
-            ], Response::HTTP_NOT_FOUND);
+            ], Response::HTTP_OK);
         }
 
         return response()->json([
@@ -127,14 +150,12 @@ class SimulationApplicantController extends Controller
             'photo.max' => 'La foto no debe superar los 2MB',
         ]);
 
-        $applicant = SimulationApplicant::where('uuid', $uuid)
-            ->with(['simulationProcess', 'examSimulation'])
-            ->first();
+        $applicant = $this->getApplicantByUuid($uuid);
 
         if (!$applicant) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Postulante no encontrado',
+                'message' => 'Postulante no encontrado en el simulacro activo',
             ], Response::HTTP_NOT_FOUND);
         }
 
@@ -172,7 +193,6 @@ class SimulationApplicantController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Foto subida exitosamente',
-            'data' => $this->searchByUuid($uuid),
         ], Response::HTTP_OK);
     }
 
