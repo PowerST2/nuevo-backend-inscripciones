@@ -4,6 +4,7 @@ namespace App\Models\Simulation;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Storage;
 
 class SimulationProcess extends Model
 {
@@ -12,11 +13,19 @@ class SimulationProcess extends Model
     // Desactivamos created_at y updated_at
     public $timestamps = false;
 
+    // Constantes para estados de foto
+    const PHOTO_STATUS_PENDING = 'pending';
+    const PHOTO_STATUS_APPROVED = 'approved';
+    const PHOTO_STATUS_REJECTED = 'rejected';
+
     protected $fillable = [
         'simulation_applicant_id',
         'pre_registration_at',
         'payment_at',
         'photo_at',
+        'photo_status',
+        'photo_rejected_reason',
+        'photo_reviewed_at',
         'data_confirmation_at',
         'registration_at',
     ];
@@ -25,6 +34,7 @@ class SimulationProcess extends Model
         'pre_registration_at' => 'datetime',
         'payment_at' => 'datetime',
         'photo_at' => 'datetime',
+        'photo_reviewed_at' => 'datetime',
         'data_confirmation_at' => 'datetime',
         'registration_at' => 'datetime',
     ];
@@ -50,11 +60,73 @@ class SimulationProcess extends Model
     }
 
     /**
-     * Marcar que la foto fue subida
+     * Marcar que la foto fue subida (estado pendiente de revisión)
      */
     public function markPhotoUploaded(): bool
     {
         $this->photo_at = now('America/Lima');
+        $this->photo_status = self::PHOTO_STATUS_PENDING;
+        $this->photo_rejected_reason = null;
+        $this->photo_reviewed_at = null;
+        return $this->save();
+    }
+
+    /**
+     * Verificar si la foto está aprobada
+     */
+    public function isPhotoApproved(): bool
+    {
+        return $this->photo_status === self::PHOTO_STATUS_APPROVED;
+    }
+
+    /**
+     * Verificar si la foto está pendiente de revisión
+     */
+    public function isPhotoPending(): bool
+    {
+        return $this->photo_status === self::PHOTO_STATUS_PENDING;
+    }
+
+    /**
+     * Verificar si la foto fue rechazada
+     */
+    public function isPhotoRejected(): bool
+    {
+        return $this->photo_status === self::PHOTO_STATUS_REJECTED;
+    }
+
+    /**
+     * Aprobar la foto
+     */
+    public function approvePhoto(): bool
+    {
+        $this->photo_status = self::PHOTO_STATUS_APPROVED;
+        $this->photo_rejected_reason = null;
+        $this->photo_reviewed_at = now('America/Lima');
+        return $this->save();
+    }
+
+    /**
+     * Rechazar la foto (borra la foto y resetea el estado)
+     */
+    public function rejectPhoto(string $reason): bool
+    {
+        // Obtener el postulante para borrar su foto
+        $applicant = $this->simulationApplicant;
+        
+        if ($applicant && $applicant->photo_path) {
+            // Eliminar el archivo de la foto
+            Storage::disk('public')->delete($applicant->photo_path);
+            // Limpiar el campo photo_path del postulante
+            $applicant->photo_path = null;
+            $applicant->save();
+        }
+
+        // Resetear estado de foto en el proceso
+        $this->photo_at = null;
+        $this->photo_status = self::PHOTO_STATUS_REJECTED;
+        $this->photo_rejected_reason = $reason;
+        $this->photo_reviewed_at = now('America/Lima');
         return $this->save();
     }
 

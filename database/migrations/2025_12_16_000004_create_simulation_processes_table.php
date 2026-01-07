@@ -16,6 +16,9 @@ return new class extends Migration
             $table->dateTime('pre_registration_at')->nullable();
             $table->dateTime('payment_at')->nullable();
             $table->dateTime('photo_at')->nullable();
+            $table->string('photo_status', 20)->nullable()->comment('pending, approved, rejected');
+            $table->string('photo_rejected_reason', 255)->nullable();
+            $table->dateTime('photo_reviewed_at')->nullable();
             $table->dateTime('data_confirmation_at')->nullable();
             $table->dateTime('registration_at')->nullable();
             

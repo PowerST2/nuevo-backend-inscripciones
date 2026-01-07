@@ -60,6 +60,35 @@ class SimulationApplicantController extends Controller
     }
 
     /**
+     * Obtener estado de la foto del aplicante
+     * GET /api/simulation-applicants/{uuid}/photo-status
+     */
+    public function getPhotoStatus(string $uuid)
+    {
+        $applicant = $this->getApplicantByUuid($uuid);
+
+        if (!$applicant) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Postulante no encontrado en el simulacro activo',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $process = $applicant->simulationProcess;
+
+        return response()->json([
+            'status' => 'success',
+            'requires_photo' => $applicant->requiresPhoto(),
+            'has_photo' => $applicant->hasPhoto(),
+            'photo_uploaded_at' => $process?->photo_at,
+            'photo_status' => $process?->photo_status,
+            'photo_approved' => $process?->isPhotoApproved() ?? false,
+            'photo_rejected_reason' => $process?->photo_rejected_reason,
+            'photo_reviewed_at' => $process?->photo_reviewed_at,
+        ], Response::HTTP_OK);
+    }
+
+    /**
      * Buscar aplicante por DNI y email (ambos obligatorios)
      * POST /api/simulation-applicants/search
      * Body: { "dni": "12345678", "email": "test@email.com" }

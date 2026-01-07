@@ -22,6 +22,9 @@ Route::get('/simulation-applicants/{uuid}/status', [SimulationApplicantControlle
 // Verificar si pagó por UUID
 Route::get('/simulation-applicants/{uuid}/has-paid', [SimulationApplicantController::class, 'hasPaid'])->name('api.simulation-applicants.has-paid');
 
+// Estado de la foto por UUID
+Route::get('/simulation-applicants/{uuid}/photo-status', [SimulationApplicantController::class, 'getPhotoStatus'])->name('api.simulation-applicants.photo-status');
+
 // Marcar pago por UUID
 Route::post('/simulation-applicants/{uuid}/mark-payment', [SimulationApplicantController::class, 'markPaymentByUuid'])->name('api.simulation-applicants.mark-payment-by-uuid');
 

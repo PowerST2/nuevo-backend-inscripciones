@@ -76,6 +76,9 @@ trait SimulationApplicantTrait
                 'pre_registration' => $applicant->simulationProcess->pre_registration_at,
                 'payment' => $applicant->simulationProcess->payment_at,
                 'photo' => $applicant->simulationProcess->photo_at,
+                'photo_status' => $applicant->simulationProcess->photo_status,
+                'photo_rejected_reason' => $applicant->simulationProcess->photo_rejected_reason,
+                'photo_reviewed_at' => $applicant->simulationProcess->photo_reviewed_at,
                 'data_confirmation' => $applicant->simulationProcess->data_confirmation_at,
                 'registration' => $applicant->simulationProcess->registration_at,
             ] : null,
@@ -300,6 +303,22 @@ trait SimulationApplicantTrait
             ];
         }
 
+        // Verificar que la foto esté aprobada si es presencial
+        if ($applicant->requiresPhoto() && !$applicant->simulationProcess->isPhotoApproved()) {
+            $status = $applicant->simulationProcess->photo_status;
+            if ($status === 'pending') {
+                return [
+                    'success' => false,
+                    'message' => 'Su foto está pendiente de revisión. Espere a que sea aprobada para continuar.',
+                ];
+            } elseif ($status === 'rejected') {
+                return [
+                    'success' => false,
+                    'message' => 'Su foto fue rechazada: ' . ($applicant->simulationProcess->photo_rejected_reason ?? 'Sin motivo especificado') . '. Debe subir una nueva foto.',
+                ];
+            }
+        }
+
         // Verificar si ya confirmó
         if (!is_null($applicant->simulationProcess->data_confirmation_at)) {
             return [
@@ -434,6 +453,22 @@ trait SimulationApplicantTrait
             ];
         }
 
+        // Verificar que la foto esté aprobada si es presencial
+        if ($applicant->requiresPhoto() && !$applicant->simulationProcess->isPhotoApproved()) {
+            $status = $applicant->simulationProcess->photo_status;
+            if ($status === 'pending') {
+                return [
+                    'success' => false,
+                    'message' => 'Su foto está pendiente de revisión. Espere a que sea aprobada para continuar.',
+                ];
+            } elseif ($status === 'rejected') {
+                return [
+                    'success' => false,
+                    'message' => 'Su foto fue rechazada: ' . ($applicant->simulationProcess->photo_rejected_reason ?? 'Sin motivo especificado') . '. Debe subir una nueva foto.',
+                ];
+            }
+        }
+
         // Actualizar datos si se proporcionaron (sin foto - eso va por API separada)
         $allowedFields = [
             'last_name_father',
@@ -505,6 +540,22 @@ trait SimulationApplicantTrait
                 'success' => false,
                 'message' => 'Debe subir su foto antes de confirmar sus datos (simulacro presencial)',
             ];
+        }
+
+        // Verificar que la foto esté aprobada si es presencial
+        if ($applicant->requiresPhoto() && !$applicant->simulationProcess->isPhotoApproved()) {
+            $status = $applicant->simulationProcess->photo_status;
+            if ($status === 'pending') {
+                return [
+                    'success' => false,
+                    'message' => 'Su foto está pendiente de revisión. Espere a que sea aprobada para continuar.',
+                ];
+            } elseif ($status === 'rejected') {
+                return [
+                    'success' => false,
+                    'message' => 'Su foto fue rechazada: ' . ($applicant->simulationProcess->photo_rejected_reason ?? 'Sin motivo especificado') . '. Debe subir una nueva foto.',
+                ];
+            }
         }
 
         // Actualizar datos si se proporcionaron
@@ -668,6 +719,10 @@ trait SimulationApplicantTrait
                     'payment_at' => $process->payment_at,
                     'photo_uploaded' => !is_null($process->photo_at),
                     'photo_at' => $process->photo_at,
+                    'photo_status' => $process->photo_status,
+                    'photo_approved' => $process->isPhotoApproved(),
+                    'photo_rejected_reason' => $process->photo_rejected_reason,
+                    'photo_reviewed_at' => $process->photo_reviewed_at,
                     'data_confirmed' => !is_null($process->data_confirmation_at),
                     'data_confirmation_at' => $process->data_confirmation_at,
                     'registration_completed' => !is_null($process->registration_at),

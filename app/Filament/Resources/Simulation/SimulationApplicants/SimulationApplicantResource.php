@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Simulation\SimulationApplicants;
 
 use App\Filament\Resources\Simulation\SimulationApplicants\Pages\ManageSimulationApplicants;
+use App\Models\Simulation\ExamSimulation;
 use App\Models\Simulation\SimulationApplicant;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -16,7 +17,9 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 class SimulationApplicantResource extends Resource
@@ -105,7 +108,13 @@ class SimulationApplicantResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('exam_simulation_id')
+                    ->label('Simulacro')
+                    ->options(fn () => ExamSimulation::orderBy('created_at', 'desc')
+                        ->pluck('description', 'id')
+                        ->toArray())
+                    ->default(fn () => ExamSimulation::where('active', true)->first()?->id)
+                    ->selectablePlaceholder(false),
             ])
             ->recordActions([
                 EditAction::make(),
