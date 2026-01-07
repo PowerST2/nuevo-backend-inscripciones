@@ -309,11 +309,16 @@ class SimulationApplicantController extends Controller
 
     /**
      * Completar inscripción por UUID
-     * POST /api/simulation-applicants/{uuid}/complete
+     * PUT /api/simulation-applicants/complete
+     * Body: { "uuid": "..." }
      */
-    public function completeByUuid(string $uuid)
+    public function completeByUuid(Request $request)
     {
-        $result = $this->completeRegistrationByUuid($uuid);
+        $validated = $request->validate([
+            'uuid' => 'required|uuid',
+        ]);
+
+        $result = $this->completeRegistrationByUuid($validated['uuid']);
 
         return response()->json([
             'status' => $result['success'] ? 'success' : 'error',

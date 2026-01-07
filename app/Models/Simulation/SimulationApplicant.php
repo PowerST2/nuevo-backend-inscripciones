@@ -2,13 +2,14 @@
 
 namespace App\Models\Simulation;
 
+use App\Traits\GeneratesRegistrationCode;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Str;
 
 class SimulationApplicant extends Model
 {
-    use HasFactory;
+    use HasFactory, GeneratesRegistrationCode;
 
     protected $fillable = [
         'uuid',
@@ -88,6 +89,7 @@ class SimulationApplicant extends Model
         parent::boot();
 
         static::creating(function ($model) {
+            // Generar UUID si no existe
             if (empty($model->uuid)) {
                 $model->uuid = (string) Str::uuid();
             }

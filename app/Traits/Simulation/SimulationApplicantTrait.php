@@ -710,8 +710,8 @@ trait SimulationApplicantTrait
                 'process' => $process ? [
                     'pre_registration' => $process->pre_registration_at ? $process->pre_registration_at->format('Y-m-d H:i') : null,
                     'payment' => $process->payment_at ? $process->payment_at->format('Y-m-d H:i') : null,
+                    'photo_reviewed_at' => $process->photo_reviewed_at ? $process->photo_reviewed_at->format('Y-m-d H:i') : null,
                     'confirmation' => $process->data_confirmation_at ? $process->data_confirmation_at->format('Y-m-d H:i') : null,
-                    'registration' => $process->registration_at ? $process->registration_at->format('Y-m-d H:i') : null,
                 ] : null,
             ],
         ];

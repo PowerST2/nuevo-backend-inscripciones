@@ -70,6 +70,9 @@ class ExamSimulationResource extends Resource
                 DatePicker::make('exam_date_end')
                     ->label('Fecha fin')
                     ->required(),
+                DatePicker::make('exam_date')
+                    ->label('Fecha del examen')
+                    ->helperText('Fecha principal del examen (opcional si ya usa rango).'),
                 Toggle::make('active')
                     ->label('Activo')
                     ->default(true),
@@ -105,6 +108,10 @@ class ExamSimulationResource extends Resource
                     ->sortable(),
                 TextColumn::make('exam_date_end')
                     ->label('Fecha fin')
+                    ->date()
+                    ->sortable(),
+                TextColumn::make('exam_date')
+                    ->label('Fecha examen')
                     ->date()
                     ->sortable(),
                 IconColumn::make('active')
