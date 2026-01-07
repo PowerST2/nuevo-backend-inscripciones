@@ -18,8 +18,8 @@ use UnitEnum;
 class SystemDocumentResource extends Resource
 {
     protected static ?string $model = SystemDocument::class;
-    protected static ?string $modelLabel = 'Documento de Sistema';
-    protected static ?string $pluralModelLabel = 'Documentos de Sistema';
+    protected static ?string $modelLabel = 'Docs. Sistema';
+    protected static ?string $pluralModelLabel = 'Docs. de Sistema';
 
     protected static string | UnitEnum | null $navigationGroup = 'Documentos';
     protected static ?int $navigationSort = 1;

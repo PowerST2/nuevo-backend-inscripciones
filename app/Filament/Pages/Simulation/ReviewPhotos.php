@@ -29,6 +29,8 @@ class ReviewPhotos extends Page
 
     public ?int $selectedSimulationId = null;
     public array $pendingPhotos = [];
+    public int $currentIndex = 0;
+    public string $searchDni = '';
     public string $rejectReason = '';
     public ?int $rejectingPhotoId = null;
 
@@ -44,16 +46,24 @@ class ReviewPhotos extends Page
     {
         if (!$this->selectedSimulationId) {
             $this->pendingPhotos = [];
+            $this->currentIndex = 0;
             return;
         }
 
-        $this->pendingPhotos = SimulationApplicant::where('exam_simulation_id', $this->selectedSimulationId)
+        $query = SimulationApplicant::where('exam_simulation_id', $this->selectedSimulationId)
             ->whereHas('simulationProcess', function ($query) {
                 $query->where('photo_status', SimulationProcess::PHOTO_STATUS_PENDING)
                     ->whereNotNull('photo_at');
             })
             ->whereNotNull('photo_path')
-            ->with('simulationProcess')
+            ->with('simulationProcess');
+
+        // Filtrar por DNI si hay búsqueda
+        if (!empty($this->searchDni)) {
+            $query->where('dni', 'like', '%' . $this->searchDni . '%');
+        }
+
+        $this->pendingPhotos = $query->orderBy('created_at', 'asc')
             ->get()
             ->map(function ($applicant) {
                 return [
@@ -62,16 +72,63 @@ class ReviewPhotos extends Page
                     'dni' => $applicant->dni,
                     'full_name' => $applicant->full_name,
                     'email' => $applicant->email,
+                    'phone' => $applicant->phone_mobile,
                     'photo_url' => $applicant->photo_path ? Storage::disk('public')->url($applicant->photo_path) : null,
                     'photo_at' => $applicant->simulationProcess->photo_at?->format('d/m/Y H:i'),
                 ];
             })
             ->toArray();
+
+        // Resetear índice si está fuera de rango
+        if ($this->currentIndex >= count($this->pendingPhotos)) {
+            $this->currentIndex = max(0, count($this->pendingPhotos) - 1);
+        }
     }
 
     public function updatedSelectedSimulationId(): void
     {
+        $this->currentIndex = 0;
+        $this->searchDni = '';
         $this->loadPendingPhotos();
+    }
+
+    public function updatedSearchDni(): void
+    {
+        $this->currentIndex = 0;
+        $this->loadPendingPhotos();
+    }
+
+    public function clearSearch(): void
+    {
+        $this->searchDni = '';
+        $this->currentIndex = 0;
+        $this->loadPendingPhotos();
+    }
+
+    public function nextPhoto(): void
+    {
+        if ($this->currentIndex < count($this->pendingPhotos) - 1) {
+            $this->currentIndex++;
+        }
+    }
+
+    public function previousPhoto(): void
+    {
+        if ($this->currentIndex > 0) {
+            $this->currentIndex--;
+        }
+    }
+
+    public function goToPhoto(int $index): void
+    {
+        if ($index >= 0 && $index < count($this->pendingPhotos)) {
+            $this->currentIndex = $index;
+        }
+    }
+
+    public function getCurrentPhotoProperty(): ?array
+    {
+        return $this->pendingPhotos[$this->currentIndex] ?? null;
     }
 
     public function approvePhoto(int $applicantId): void
@@ -96,6 +153,22 @@ class ReviewPhotos extends Page
             ->send();
 
         $this->loadPendingPhotos();
+    }
+
+    public function approveCurrent(): void
+    {
+        $current = $this->currentPhoto;
+        if ($current) {
+            $this->approvePhoto($current['id']);
+        }
+    }
+
+    public function rejectCurrent(): void
+    {
+        $current = $this->currentPhoto;
+        if ($current) {
+            $this->openRejectModal($current['id']);
+        }
     }
 
     public function openRejectModal(int $applicantId): void

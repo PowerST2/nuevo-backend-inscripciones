@@ -69,23 +69,28 @@ class SimulationApplicantController extends Controller
 
         if (!$applicant) {
             return response()->json([
-                'status' => 'error',
+                'status' => 'success',
+                'found' => false,
+                'photo_url' => null,
                 'message' => 'Postulante no encontrado en el simulacro activo',
-            ], Response::HTTP_NOT_FOUND);
+            ], Response::HTTP_OK);
         }
 
-        $process = $applicant->simulationProcess;
+        $photoStatus = $applicant->simulationProcess?->photo_status;
 
-        return response()->json([
+        $response = [
             'status' => 'success',
-            'requires_photo' => $applicant->requiresPhoto(),
-            'has_photo' => $applicant->hasPhoto(),
-            'photo_uploaded_at' => $process?->photo_at,
-            'photo_status' => $process?->photo_status,
-            'photo_approved' => $process?->isPhotoApproved() ?? false,
-            'photo_rejected_reason' => $process?->photo_rejected_reason,
-            'photo_reviewed_at' => $process?->photo_reviewed_at,
-        ], Response::HTTP_OK);
+            'found' => true,
+            'photo_status' => $photoStatus,
+            'photo_url' => $applicant->photo_url,
+        ];
+
+        // Solo incluir el motivo si la foto fue rechazada
+        if ($photoStatus === 'rejected') {
+            $response['photo_rejected_reason'] = $applicant->simulationProcess?->photo_rejected_reason;
+        }
+
+        return response()->json($response, Response::HTTP_OK);
     }
 
     /**

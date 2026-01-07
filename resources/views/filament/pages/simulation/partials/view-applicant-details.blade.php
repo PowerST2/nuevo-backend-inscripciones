@@ -10,6 +10,7 @@
             </td>
             <td style="vertical-align: top;">
                 <p><strong>Código:</strong> {{ $applicant->code ?? 'Sin asignar' }}</p>
+                <p><strong>UUID:</strong> <code style="font-size: 11px; background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">{{ $applicant->uuid }}</code></p>
                 <p><strong>DNI:</strong> {{ $applicant->dni }}</p>
                 <p><strong>Nombre:</strong> {{ $applicant->full_name }}</p>
                 <p><strong>Email:</strong> {{ $applicant->email }}</p>

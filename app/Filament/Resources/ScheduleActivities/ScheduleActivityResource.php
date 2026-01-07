@@ -22,8 +22,8 @@ use UnitEnum;
 class ScheduleActivityResource extends Resource
 {
     protected static ?string $model = ScheduleActivity::class;
-    protected static ?string $modelLabel = 'Calendario de Actividades';
-    protected static ?string $pluralModelLabel = 'Calendarios de Actividades';
+    protected static ?string $modelLabel = 'Calendario de Activ.';
+    protected static ?string $pluralModelLabel = 'Calendarios de Activ.';
 
     protected static string | UnitEnum | null $navigationGroup = 'Configuración Basica';
     protected static ?int $navigationSort = 7;

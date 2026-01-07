@@ -24,9 +24,9 @@ class ActiveSimulationApplicants extends Page implements HasTable
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
-    protected static ?string $navigationLabel = 'Postulantes Simulacro Activo';
+    protected static ?string $navigationLabel = 'Postulantes Simulacro';
 
-    protected static ?string $title = 'Postulantes del Simulacro Activo';
+    protected static ?string $title = 'Postulantes del Simulacro';
 
     protected static ?string $slug = 'simulation/active-applicants';
 
@@ -172,6 +172,15 @@ class ActiveSimulationApplicants extends Page implements HasTable
                     ]))
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Cerrar'),
+                Action::make('delete')
+                    ->label('Eliminar')
+                    ->icon('heroicon-o-trash')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalHeading('Eliminar Postulante')
+                    ->modalDescription(fn(SimulationApplicant $record): string => "¿Está seguro que desea eliminar a {$record->full_name} ({$record->dni})? Esta acción no se puede deshacer.")
+                    ->modalSubmitActionLabel('Sí, eliminar')
+                    ->action(fn(SimulationApplicant $record) => $record->delete()),
             ])
             ->defaultSort('created_at', 'desc')
             ->striped()

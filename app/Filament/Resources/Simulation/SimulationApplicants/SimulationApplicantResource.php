@@ -28,6 +28,8 @@ class SimulationApplicantResource extends Resource
     protected static ?string $modelLabel = 'Aplicante al Simulacro';
     protected static ?string $pluralModelLabel = 'Aplicantes al Simulacro';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static string | UnitEnum | null $navigationGroup = 'Simulacros';
     protected static ?int $navigationSort = 2;
 

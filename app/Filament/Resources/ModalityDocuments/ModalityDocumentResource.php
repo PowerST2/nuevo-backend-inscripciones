@@ -24,8 +24,8 @@ use UnitEnum;
 class ModalityDocumentResource extends Resource
 {
     protected static ?string $model = ModalityDocument::class;
-    protected static ?string $modelLabel = 'Documento por Modalidad';
-    protected static ?string $pluralModelLabel = 'Documentos por Modalidad';
+    protected static ?string $modelLabel = 'Docs. Modalidad';
+    protected static ?string $pluralModelLabel = 'Docs. por Modalidad';
 
     protected static string | UnitEnum | null $navigationGroup = 'Documentos';
     protected static ?int $navigationSort = 2;

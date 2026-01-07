@@ -107,23 +107,12 @@ class SimulationProcess extends Model
     }
 
     /**
-     * Rechazar la foto (borra la foto y resetea el estado)
+     * Rechazar la foto (solo cambia el estado, NO elimina la foto)
+     * La foto se mantiene en el sistema pero no se muestra al usuario
+     * Cuando suba una nueva foto, se sobrescribirá
      */
     public function rejectPhoto(string $reason): bool
     {
-        // Obtener el postulante para borrar su foto
-        $applicant = $this->simulationApplicant;
-        
-        if ($applicant && $applicant->photo_path) {
-            // Eliminar el archivo de la foto
-            Storage::disk('public')->delete($applicant->photo_path);
-            // Limpiar el campo photo_path del postulante
-            $applicant->photo_path = null;
-            $applicant->save();
-        }
-
-        // Resetear estado de foto en el proceso
-        $this->photo_at = null;
         $this->photo_status = self::PHOTO_STATUS_REJECTED;
         $this->photo_rejected_reason = $reason;
         $this->photo_reviewed_at = now('America/Lima');
