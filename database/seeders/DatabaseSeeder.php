@@ -15,11 +15,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call(FacultySeeder::class);
-        $this->call(MajorSeeder::class);
-        $this->call(UsersSeeder::class);
-        $this->call(CountrySeeder::class);
-        $this->call(UbigeoSeeder::class);
-
+        $this->call([
+            FacultySeeder::class,
+            MajorSeeder::class,
+            //UsersSeeder::class,
+            CountrySeeder::class,
+            UbigeoSeeder::class,
+        ]);
     }
 }

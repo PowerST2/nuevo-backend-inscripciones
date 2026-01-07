@@ -27,7 +27,7 @@ class UbigeoResource extends Resource
 
     protected static string | UnitEnum | null $navigationGroup = 'Configuración Basica';
     protected static ?int $navigationSort = 4;
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMapPin;
 
     protected static ?string $recordTitleAttribute = 'name';
 

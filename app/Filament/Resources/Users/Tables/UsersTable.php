@@ -20,6 +20,10 @@ class UsersTable
                 TextColumn::make('email')
                     ->label(__('filament.labels.email'))
                     ->searchable(),
+                TextColumn::make('roles.name')
+                    ->label(__('filament.labels.role'))
+                    ->badge()
+                    ->searchable(),
                 TextColumn::make('email_verified_at')
                     ->label(__('filament.labels.email') . ' ' . __('filament.labels.updated_at'))
                     ->dateTime()
@@ -34,6 +38,7 @@ class UsersTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                    
             ])
             ->filters([
                 //

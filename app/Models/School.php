@@ -15,7 +15,7 @@ class School extends Model
         'modular_code',
         'annexed',
         'level',
-        'nombre',
+        'name',
         'management_minedu',
         'management',
         'director',

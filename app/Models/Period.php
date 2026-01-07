@@ -11,7 +11,6 @@ class Period extends Model
     use HasFactory;
 
     protected $fillable = [
-        'code',
         'name',
         'active',
     ];

@@ -24,8 +24,8 @@ class SchoolForm
                     ->numeric(),
                 TextInput::make('level')
                     ->label(__('filament.labels.level')),
-                TextInput::make('nombre')
-                    ->label(__('filament.labels.nombre')),
+                TextInput::make('name')
+                    ->label(__('filament.labels.name')),
                 TextInput::make('management_minedu')
                     ->label(__('filament.labels.management_minedu')),
                 Select::make('management')

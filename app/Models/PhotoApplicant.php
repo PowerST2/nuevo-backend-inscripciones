@@ -12,7 +12,9 @@ class PhotoApplicant extends Model
 
     protected $fillable = [
         'applicant_id',
-        'photo',
+        'path',
+        'status',
+        'user_id',
     ];
 
     public function applicant(): BelongsTo

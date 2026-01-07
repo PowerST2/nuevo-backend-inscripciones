@@ -24,8 +24,8 @@ class SchoolsTable
                 TextColumn::make('level')
                     ->label(__('filament.labels.level'))
                     ->searchable(),
-                TextColumn::make('nombre')
-                    ->label(__('filament.labels.nombre'))
+                TextColumn::make('name')
+                    ->label(__('filament.labels.name'))
                     ->searchable(),
                 TextColumn::make('management_minedu')
                     ->label(__('filament.labels.management_minedu'))

@@ -22,13 +22,13 @@ use UnitEnum;
 class DocumentTypeResource extends Resource
 {
     protected static ?string $model = DocumentType::class;
-    protected static ?string $modelLabel = 'Tipo de Documento';
-    protected static ?string $pluralModelLabel = 'Tipos de Documentos';
+    protected static ?string $modelLabel = 'Tipo Docs. de Identidad';
+    protected static ?string $pluralModelLabel = 'Tipo Docs. de Identidad';
 
     protected static string | UnitEnum | null $navigationGroup = 'Configuración Basica';
     protected static ?int $navigationSort = 1;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
     protected static ?string $recordTitleAttribute = 'name';
 

@@ -157,7 +157,8 @@ return [
         'users' => 'Usuarios',
         'email' => 'Correo Electrónico',
         'password' => 'Contraseña',
-        'role' => 'Rol',
+        'role' => 'Roles',
+        'email_verified_at' => 'Verificación de Email',
         
         // Placeholders
         'select_department' => 'Selecciona un departamento',

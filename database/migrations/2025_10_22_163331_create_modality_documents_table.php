@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('modality_documents', function (Blueprint $table) {
             $table->id();
             $table->foreignId('modality_id')->constrained('modalities')->onDelete('cascade');
-            $table->string('document_name', 255);
+            $table->string('document_code', 255);
             $table->string('path_document', 255);
             $table->boolean('active')->default(true);
             $table->timestamps();

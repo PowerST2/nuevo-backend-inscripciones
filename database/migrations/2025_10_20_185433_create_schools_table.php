@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('modular_code', 10)->index();
             $table->integer('annexed')->nullable();
             $table->string('level', 100)->nullable();
-            $table->string('nombre', 100)->index()->nullable();
+            $table->string('name', 100)->index()->nullable();
             $table->string('management_minedu', 100)->nullable();
             $table->string('management', 100)->index();
             $table->string('director')->nullable();
