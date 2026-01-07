@@ -106,7 +106,7 @@ class ActiveSimulationApplicants extends Page implements HasTable
                     ->searchable(['first_names', 'last_name_father', 'last_name_mother'])
                     ->sortable(),
                 TextColumn::make('email')
-                    ->label('Email')
+                    ->label('Correo')
                     ->searchable()
                     ->toggleable(),
                 IconColumn::make('has_photo')
@@ -152,7 +152,7 @@ class ActiveSimulationApplicants extends Page implements HasTable
             ])
             ->actions([
                 Action::make('view_photo')
-                    ->label('Ver Foto')
+                    ->label('')
                     ->icon('heroicon-o-photo')
                     ->color('info')
                     ->modalHeading(fn(SimulationApplicant $record): string => "Foto de {$record->full_name}")
@@ -163,7 +163,7 @@ class ActiveSimulationApplicants extends Page implements HasTable
                     ->modalCancelActionLabel('Cerrar')
                     ->visible(fn(SimulationApplicant $record): bool => $record->hasPhoto()),
                 Action::make('view_details')
-                    ->label('Ver Detalles')
+                    ->label('')
                     ->icon('heroicon-o-eye')
                     ->color('gray')
                     ->modalHeading(fn(SimulationApplicant $record): string => "Detalles de {$record->full_name}")
@@ -173,7 +173,7 @@ class ActiveSimulationApplicants extends Page implements HasTable
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Cerrar'),
                 Action::make('delete')
-                    ->label('Eliminar')
+                    ->label('')
                     ->icon('heroicon-o-trash')
                     ->color('danger')
                     ->requiresConfirmation()

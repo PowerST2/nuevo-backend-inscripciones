@@ -21,7 +21,7 @@ class UsersTable
                     ->label(__('filament.labels.email'))
                     ->searchable(),
                 TextColumn::make('roles.name')
-                    ->label('Roles')
+                    ->label(__('filament.labels.role'))
                     ->badge()
                     ->searchable(),
                 TextColumn::make('email_verified_at')

@@ -13,8 +13,8 @@ Route::put('/simulation-applicants/{uuid}', [SimulationApplicantController::clas
 // Subir foto por UUID
 Route::post('/simulation-applicants/{uuid}/upload-photo', [SimulationApplicantController::class, 'uploadPhotoByUuid'])->name('api.simulation-applicants.upload-photo-by-uuid');
 
-// Confirmar datos por UUID
-Route::post('/simulation-applicants/{uuid}/confirm', [SimulationApplicantController::class, 'confirmDataByUuid'])->name('api.simulation-applicants.confirm-by-uuid');
+// Confirmar datos por UUID (UUID en body)
+Route::put('/simulation-applicants/confirm', [SimulationApplicantController::class, 'confirmDataByUuid'])->name('api.simulation-applicants.confirm-by-uuid');
 
 // Estado del proceso por UUID
 Route::get('/simulation-applicants/{uuid}/status', [SimulationApplicantController::class, 'getStatusByUuid'])->name('api.simulation-applicants.status-by-uuid');

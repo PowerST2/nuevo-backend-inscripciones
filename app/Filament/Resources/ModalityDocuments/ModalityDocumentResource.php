@@ -30,7 +30,7 @@ class ModalityDocumentResource extends Resource
     protected static string | UnitEnum | null $navigationGroup = 'Documentos';
     protected static ?int $navigationSort = 2;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedFolderOpen;
 
     protected static ?string $recordTitleAttribute = 'name';
 

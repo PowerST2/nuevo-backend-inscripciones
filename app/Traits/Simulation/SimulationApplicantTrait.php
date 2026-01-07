@@ -66,6 +66,8 @@ trait SimulationApplicantTrait
             'last_name_mother' => $applicant->last_name_mother,
             'first_names' => $applicant->first_names,
             'email' => $applicant->email,
+            'phone_mobile' => $applicant->phone_mobile,
+            'phone_other' => $applicant->phone_other,
             'photo_path' => $applicant->photo_path,
             'photo_url' => $applicant->photo_url,
             'exam_description' => $applicant->examSimulation->description,

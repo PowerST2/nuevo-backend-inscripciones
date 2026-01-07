@@ -29,7 +29,7 @@ class ApplicantsTable
                     ->label('Nro. Documento')
                     ->searchable(),
                 TextColumn::make('email')
-                    ->label('Email')
+                    ->label('Correo')
                     ->searchable(),
             ])
             ->filters([

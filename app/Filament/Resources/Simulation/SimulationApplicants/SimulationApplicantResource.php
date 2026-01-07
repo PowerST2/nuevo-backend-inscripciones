@@ -47,25 +47,32 @@ class SimulationApplicantResource extends Resource
                     ->dehydrated(false)
                     ->visibleOn('edit'),
                 TextInput::make('dni')
+                    ->label('DNI')
                     ->required()
                     ->maxLength(8)
                     ->numeric(),
                 TextInput::make('last_name_father')
+                    ->label('Apellido Paterno')
                     ->required(),
                 TextInput::make('last_name_mother')
+                    ->label('Apellido Materno')
                     ->required(),
                 TextInput::make('first_names')
+                    ->label('Nombres')
                     ->required(),
                 TextInput::make('email')
-                    ->label('Email address')
+                    ->label('Correo Electrónico')
                     ->email(),
                 TextInput::make('phone_mobile')
+                    ->label('Teléfono Celular')
                     ->tel()
                     ->maxLength(9),
                 TextInput::make('phone_other')
+                    ->label('Otro Teléfono')
                     ->tel()
                     ->maxLength(9),
                 Select::make('exam_simulation_id')
+                    ->label('Simulacro')
                     ->relationship('examSimulation', 'code')
                     ->required()
                     ->searchable()
@@ -83,19 +90,25 @@ class SimulationApplicantResource extends Resource
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('dni')
+                    ->label('DNI')
                     ->searchable(),
                 TextColumn::make('last_name_father')
+                    ->label('Apellido Paterno')
                     ->searchable(),
                 TextColumn::make('last_name_mother')
+                    ->label('Apellido Materno')
                     ->searchable(),
                 TextColumn::make('first_names')
+                    ->label('Nombres')
                     ->searchable(),
                 TextColumn::make('email')
-                    ->label('Email address')
+                    ->label('Correo Electrónico')
                     ->searchable(),
                 TextColumn::make('phone_mobile')
+                    ->label('Teléfono')
                     ->searchable(),
                 TextColumn::make('phone_other')
+                    ->label('Otro Tel.')
                     ->searchable(),
                 TextColumn::make('examSimulation.code')
                     ->label('Simulacro')

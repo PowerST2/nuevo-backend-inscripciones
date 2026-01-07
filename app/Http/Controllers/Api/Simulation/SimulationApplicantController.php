@@ -259,11 +259,16 @@ class SimulationApplicantController extends Controller
 
     /**
      * Confirmar datos del aplicante por UUID
-     * POST /api/simulation-applicants/{uuid}/confirm
+     * PUT /api/simulation-applicants/confirm
+     * Body: { "uuid": "..." }
      */
-    public function confirmDataByUuid(string $uuid)
+    public function confirmDataByUuid(Request $request)
     {
-        $result = $this->confirmApplicantDataByUuid($uuid);
+        $validated = $request->validate([
+            'uuid' => 'required|uuid',
+        ]);
+
+        $result = $this->confirmApplicantDataByUuid($validated['uuid']);
 
         return response()->json([
             'status' => $result['success'] ? 'success' : 'error',
@@ -446,7 +451,7 @@ class SimulationApplicantController extends Controller
 
     /**
      * Confirmar datos del aplicante
-     * POST /api/simulation-applicants/confirm
+     * GET /api/simulation-applicants/confirm
      * Body JSON: { dni, email }
      */
     public function confirmData(Request $request)

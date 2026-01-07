@@ -47,7 +47,7 @@ class SimulationProcessResource extends Resource
                             ->label('Código de Inscripción')
                             ->content(fn ($record) => $record?->simulationApplicant?->code ?? 'Pendiente'),
                         Placeholder::make('applicant_email')
-                            ->label('Email')
+                            ->label('Correo')
                             ->content(fn ($record) => $record?->simulationApplicant?->email ?? 'N/A'),
                     ])
                     ->columns(3),
@@ -99,7 +99,7 @@ class SimulationProcessResource extends Resource
                     ->searchable()
                     ->limit(30),
                 TextColumn::make('simulationApplicant.email')
-                    ->label('Email')
+                    ->label('Correo')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 IconColumn::make('pre_registration_at')
