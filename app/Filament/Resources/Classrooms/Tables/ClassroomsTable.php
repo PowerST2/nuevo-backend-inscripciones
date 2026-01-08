@@ -14,6 +14,7 @@ class ClassroomsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->query(fn () => \App\Models\Classroom::withCount('simulationApplicants'))
             ->columns([
                 TextColumn::make('code')
                     ->label(__('filament.labels.code'))
@@ -55,6 +56,11 @@ class ClassroomsTable
                     ->sortable(),
                 TextColumn::make('assigned_voca')
                     ->label(__('filament.labels.assigned_voca'))
+                    ->numeric()
+                    ->sortable(),
+                TextColumn::make('simulationApplicants_count')
+                    ->label('Postulantes Asignados')
+                    ->counts('simulationApplicants')
                     ->numeric()
                     ->sortable(),
                 IconColumn::make('active')

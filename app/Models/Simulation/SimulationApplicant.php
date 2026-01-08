@@ -23,6 +23,7 @@ class SimulationApplicant extends Model
         'phone_other',
         'exam_simulation_id',
         'photo_path',
+        'classroom_id',
     ];
 
     /**
@@ -39,6 +40,14 @@ class SimulationApplicant extends Model
     public function simulationProcess()
     {
         return $this->hasOne(SimulationProcess::class);
+    }
+
+    /**
+     * Relación con el aula asignada
+     */
+    public function classroom()
+    {
+        return $this->belongsTo(\App\Models\Classroom::class);
     }
 
     /**
