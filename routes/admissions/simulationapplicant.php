@@ -29,7 +29,7 @@ Route::get('/simulation-applicants/{uuid}', [SimulationApplicantController::clas
     ->name('api.simulation-applicants.show');
 
 // Actualizar datos del postulante (PUT - UUID en URL)
-Route::put('/simulation-applicants/{uuid}', [SimulationApplicantController::class, 'updateByUuid'])
+Route::post('/simulation-applicants/{uuid}', [SimulationApplicantController::class, 'updateByUuid'])
     ->name('api.simulation-applicants.update-by-uuid');
 
 // Subir foto del postulante (POST - UUID en URL)
