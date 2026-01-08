@@ -17,7 +17,7 @@ Route::post('/simulation-applicants/search', [SimulationApplicantController::cla
 // NOTA: Las rutas sin parámetros {uuid} deben ir ANTES de las que tienen {uuid}
 
 // Confirmar datos (PUT - UUID en body)
-Route::put('/simulation-applicants/confirm', [SimulationApplicantController::class, 'confirmDataByUuid'])
+Route::post('/simulation-applicants/confirm', [SimulationApplicantController::class, 'confirmDataByUuid'])
     ->name('api.simulation-applicants.confirm-by-uuid');
 
 // Completar inscripción (PUT - UUID en body)
