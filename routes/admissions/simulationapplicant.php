@@ -21,7 +21,7 @@ Route::post('/simulation-applicants/confirm', [SimulationApplicantController::cl
     ->name('api.simulation-applicants.confirm-by-uuid');
 
 // Completar inscripción (PUT - UUID en body)
-Route::put('/simulation-applicants/complete', [SimulationApplicantController::class, 'completeByUuid'])
+Route::post('/simulation-applicants/complete', [SimulationApplicantController::class, 'completeByUuid'])
     ->name('api.simulation-applicants.complete-by-uuid');
 
 // Obtener información del postulante (GET - UUID en URL)
@@ -29,7 +29,7 @@ Route::get('/simulation-applicants/{uuid}', [SimulationApplicantController::clas
     ->name('api.simulation-applicants.show');
 
 // Actualizar datos del postulante (PUT - UUID en URL)
-Route::put('/simulation-applicants/{uuid}', [SimulationApplicantController::class, 'updateByUuid'])
+Route::post('/simulation-applicants/{uuid}', [SimulationApplicantController::class, 'updateByUuid'])
     ->name('api.simulation-applicants.update-by-uuid');
 
 // Subir foto del postulante (POST - UUID en URL)
