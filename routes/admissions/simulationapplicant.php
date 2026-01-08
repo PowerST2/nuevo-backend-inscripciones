@@ -21,7 +21,7 @@ Route::post('/simulation-applicants/confirm', [SimulationApplicantController::cl
     ->name('api.simulation-applicants.confirm-by-uuid');
 
 // Completar inscripción (PUT - UUID en body)
-Route::put('/simulation-applicants/complete', [SimulationApplicantController::class, 'completeByUuid'])
+Route::post('/simulation-applicants/complete', [SimulationApplicantController::class, 'completeByUuid'])
     ->name('api.simulation-applicants.complete-by-uuid');
 
 // Obtener información del postulante (GET - UUID en URL)
