@@ -6,6 +6,7 @@ use App\Exports\PaymentExport;
 use App\Models\PaymentPortfolio;
 use App\Models\Simulation\ExamSimulation;
 use App\Models\Simulation\SimulationApplicant;
+use App\Models\Simulation\SimulationProcess;
 use BackedEnum;
 use Carbon\Carbon;
 use Filament\Forms\Components\FileUpload;
@@ -54,6 +55,10 @@ class UploadBcpPayments extends Page implements HasForms, HasTable
 
     public string $activeTab = 'upload';
 
+    public int $processResultsPage = 1;
+
+    public int $processResultsPerPage = 10;
+
     public function mount(): void
     {
         $this->form->fill();
@@ -101,13 +106,27 @@ class UploadBcpPayments extends Page implements HasForms, HasTable
         $query = PaymentPortfolio::where('process_type', 'simulation')
             ->where('process_id', $simulation->id);
 
+        // Pagados basados en payment_at del proceso (fuente de verdad)
+        $paidCount = SimulationProcess::whereNotNull('payment_at')
+            ->whereHas('simulationApplicant', fn ($q) => $q->where('exam_simulation_id', $simulation->id))
+            ->count();
+
+        $tariffAmount = $simulation->tariff?->amount ?? 0;
+        $paidAmount = $paidCount * $tariffAmount;
+
+        $totalCount = (clone $query)->count();
+        $pendingCount = max(0, $totalCount - $paidCount);
+        $totalAmount = (clone $query)->sum('amount');
+        $pendingAmount = max(0, $totalAmount - $paidAmount);
+
         return [
-            'total' => (clone $query)->count(),
-            'pending' => (clone $query)->notSent()->count(),
+            'total' => $totalCount,
+            'pending' => $pendingCount,
             'sent' => (clone $query)->sent()->count(),
-            'paid' => (clone $query)->paid()->count(),
-            'total_amount' => (clone $query)->sum('amount'),
-            'pending_amount' => (clone $query)->notSent()->sum('amount'),
+            'paid' => $paidCount,
+            'total_amount' => $totalAmount,
+            'paid_amount' => $paidAmount,
+            'pending_amount' => $pendingAmount,
         ];
     }
 
@@ -205,6 +224,9 @@ class UploadBcpPayments extends Page implements HasForms, HasTable
             ->body("Se han marcado {$count} registros como enviados.")
             ->success()
             ->send();
+
+        // Actualizar tabla y estadísticas después de descargar
+        $this->dispatch('refresh');
 
         return response()->streamDownload(function () use ($export) {
             echo Excel::raw($export, ExcelType::XLS);
@@ -340,6 +362,7 @@ class UploadBcpPayments extends Page implements HasForms, HasTable
         $results = $this->processCsvFile($fullPath, $activeSimulation);
 
         $this->processResults = $results;
+        $this->processResultsPage = 1;
 
         // Eliminar archivo después de procesar
         Storage::disk('local')->delete($filePath);
@@ -465,6 +488,16 @@ class UploadBcpPayments extends Page implements HasForms, HasTable
 
                 $applicant->simulationProcess->payment_at = $paymentDate;
                 $applicant->simulationProcess->save();
+
+                // Marcar cartera como pagada para este postulante
+                PaymentPortfolio::where('process_type', 'simulation')
+                    ->where('process_id', $simulation->id)
+                    ->where('payable_type', SimulationApplicant::class)
+                    ->where('payable_id', $applicant->id)
+                    ->update([
+                        'is_paid' => true,
+                        'payment_date' => $paymentDate->toDateString(),
+                    ]);
 
                 $results['processed']++;
                 $results['details'][] = [
