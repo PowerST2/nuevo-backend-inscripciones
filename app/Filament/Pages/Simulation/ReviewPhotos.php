@@ -6,6 +6,7 @@ use App\Models\Simulation\ExamSimulation;
 use App\Models\Simulation\SimulationApplicant;
 use App\Models\Simulation\SimulationProcess;
 use BackedEnum;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -20,6 +21,7 @@ use Livewire\WithPagination;
 
 class ReviewPhotos extends Page
 {
+    use HasPageShield;
     use WithPagination;
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCamera;
     protected static ?string $navigationLabel = 'Revisar Fotos';

@@ -8,6 +8,7 @@ use App\Models\Simulation\ExamSimulation;
 use App\Models\Simulation\SimulationApplicant;
 use App\Models\Simulation\SimulationProcess;
 use BackedEnum;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Carbon\Carbon;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -32,6 +33,7 @@ use UnitEnum;
 
 class UploadBcpPayments extends Page implements HasForms, HasTable
 {
+    use HasPageShield;
     use InteractsWithForms;
     use InteractsWithTable;
 
@@ -124,14 +126,15 @@ class UploadBcpPayments extends Page implements HasForms, HasTable
         $paidAmount = $paidCount * $tariffAmount;
 
         $totalCount = (clone $query)->count();
-        $pendingCount = max(0, $totalCount - $paidCount);
+        $sentCount = (clone $query)->sent()->count();
+        $pendingCount = (clone $query)->notSent()->count();
         $totalAmount = (clone $query)->sum('amount');
-        $pendingAmount = max(0, $totalAmount - $paidAmount);
+        $pendingAmount = (clone $query)->notSent()->sum('amount');
 
         return [
             'total' => $totalCount,
             'pending' => $pendingCount,
-            'sent' => (clone $query)->sent()->count(),
+            'sent' => $sentCount,
             'paid' => $paidCount,
             'total_amount' => $totalAmount,
             'paid_amount' => $paidAmount,

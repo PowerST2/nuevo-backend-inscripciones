@@ -5,6 +5,7 @@ namespace App\Filament\Pages\Simulation;
 use App\Models\Simulation\ExamSimulation;
 use App\Models\Simulation\SimulationApplicant;
 use BackedEnum;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Pages\Page;
@@ -20,6 +21,7 @@ use UnitEnum;
 
 class ActiveSimulationApplicants extends Page implements HasTable
 {
+    use HasPageShield;
     use InteractsWithTable;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
