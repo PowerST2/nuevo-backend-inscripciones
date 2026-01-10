@@ -12,7 +12,7 @@
                         wire:model.live="selectedSimulationId"
                         class="w-full rounded-lg border-gray-300 bg-white text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                     >
-                        <option value="">Seleccionar simulacro...</option>
+                        <option value="">Seleccionar simulacro... </option>
                         @foreach($this->simulations as $id => $description)
                             <option value="{{ $id }}">{{ $description }}</option>
                         @endforeach
