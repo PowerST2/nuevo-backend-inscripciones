@@ -103,12 +103,21 @@ class UploadBcpPayments extends Page implements HasForms, HasTable
             ];
         }
 
+        // Solo consideramos cartera vinculada a postulantes del simulacro activo
         $query = PaymentPortfolio::where('process_type', 'simulation')
-            ->where('process_id', $simulation->id);
+            ->where('process_id', $simulation->id)
+            ->whereHasMorph('payable', [SimulationApplicant::class], function ($q) use ($simulation) {
+                $q->where('exam_simulation_id', $simulation->id);
+            });
 
-        // Pagados basados en payment_at del proceso (fuente de verdad)
-        $paidCount = SimulationProcess::whereNotNull('payment_at')
-            ->whereHas('simulationApplicant', fn ($q) => $q->where('exam_simulation_id', $simulation->id))
+        // Pagados: considerar payment_at en el proceso o cartera marcada como pagada
+        $paidCount = (clone $query)
+            ->where(function ($q) {
+                $q->where('is_paid', true)
+                    ->orWhereHasMorph('payable', [SimulationApplicant::class], function ($qa) {
+                        $qa->whereHas('simulationProcess', fn ($sp) => $sp->whereNotNull('payment_at'));
+                    });
+            })
             ->count();
 
         $tariffAmount = $simulation->tariff?->amount ?? 0;
