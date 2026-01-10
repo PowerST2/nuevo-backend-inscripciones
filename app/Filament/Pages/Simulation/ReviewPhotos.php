@@ -36,6 +36,15 @@ class ReviewPhotos extends Page
     public int $currentIndex = 0;
     public string $searchDni = '';
     public string $rejectReason = '';
+    public string $rejectReasonSelected = '';
+    public array $rejectReasons = [
+        'NO usar lentes',
+        'fondo blanco',
+        'sin ningun accesorio en la cara ( gorra)',
+        'no selfie',
+        'no foto de dni , ni copia',
+        'foto clara y mirando al frente',
+    ];
     public ?int $rejectingPhotoId = null;
 
     public int $perPage = 50;
@@ -51,7 +60,7 @@ class ReviewPhotos extends Page
         $this->loadPendingPhotos();
     }
 
-    public function loadPendingPhotos(): void
+    public function loadPendingPhotos(bool $keepIndex = false): void
     {
         if (!$this->selectedSimulationId) {
             $this->pendingPhotos = [];
@@ -98,9 +107,16 @@ class ReviewPhotos extends Page
             ->values()
             ->toArray();
 
-        // Resetear índice si está fuera de rango
-        if ($this->currentIndex >= count($this->pendingPhotos)) {
-            $this->currentIndex = max(0, count($this->pendingPhotos) - 1);
+        // Ajustar índice después de cargar
+        $photosCount = count($this->pendingPhotos);
+        
+        if ($photosCount === 0) {
+            $this->currentIndex = 0;
+        } elseif ($keepIndex && $this->currentIndex >= $photosCount) {
+            // Si mantenemos índice pero excede la lista, ir al último
+            $this->currentIndex = $photosCount - 1;
+        } elseif (!$keepIndex && $this->currentIndex >= $photosCount) {
+            $this->currentIndex = max(0, $photosCount - 1);
         }
     }
 
@@ -195,7 +211,8 @@ class ReviewPhotos extends Page
             ->success()
             ->send();
 
-        $this->loadPendingPhotos();
+        $this->loadPendingPhotos(keepIndex: true);
+        $this->js('$wire.$refresh()');
     }
 
     public function approveCurrent(): void
@@ -218,6 +235,7 @@ class ReviewPhotos extends Page
     {
         $this->rejectingPhotoId = $applicantId;
         $this->rejectReason = '';
+        $this->rejectReasonSelected = '';
         $this->dispatch('open-modal', id: 'reject-photo-modal');
     }
 
@@ -227,7 +245,9 @@ class ReviewPhotos extends Page
             return;
         }
 
-        if (empty(trim($this->rejectReason))) {
+        $finalReason = trim($this->rejectReason ?: $this->rejectReasonSelected);
+
+        if ($finalReason === '') {
             Notification::make()
                 ->title('Error')
                 ->body('Debe ingresar el motivo del rechazo')
@@ -247,7 +267,7 @@ class ReviewPhotos extends Page
             return;
         }
 
-        $applicant->simulationProcess->rejectPhoto(trim($this->rejectReason));
+        $applicant->simulationProcess->rejectPhoto($finalReason);
 
         Notification::make()
             ->title('Foto Rechazada')
@@ -257,14 +277,17 @@ class ReviewPhotos extends Page
 
         $this->rejectingPhotoId = null;
         $this->rejectReason = '';
+        $this->rejectReasonSelected = '';
         $this->dispatch('close-modal', id: 'reject-photo-modal');
-        $this->loadPendingPhotos();
+        $this->loadPendingPhotos(keepIndex: true);
+        $this->js('$wire.$refresh()');
     }
 
     public function cancelReject(): void
     {
         $this->rejectingPhotoId = null;
         $this->rejectReason = '';
+        $this->rejectReasonSelected = '';
         $this->dispatch('close-modal', id: 'reject-photo-modal');
     }
 
