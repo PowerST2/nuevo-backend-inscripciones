@@ -8,6 +8,7 @@ use App\Models\Simulation\ExamSimulation;
 use App\Models\Simulation\SimulationApplicant;
 use App\Models\Simulation\SimulationProcess;
 use BackedEnum;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Carbon\Carbon;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -32,6 +33,7 @@ use UnitEnum;
 
 class UploadBcpPayments extends Page implements HasForms, HasTable
 {
+    use HasPageShield;
     use InteractsWithForms;
     use InteractsWithTable;
 
