@@ -56,7 +56,7 @@
 
         {{-- Visor de foto actual --}}
         @if($this->currentPhoto)
-            <div class="fi-section rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 overflow-hidden">
+            <div wire:key="photo-{{ $this->currentPhoto['id'] }}" class="fi-section rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 overflow-hidden">
                 <div class="flex flex-col lg:flex-row">
                     {{-- Imagen grande --}}
                     <div class="lg:w-1/2 xl:w-2/5 bg-gray-100 dark:bg-gray-800 p-6 flex items-center justify-center min-h-[400px] lg:min-h-[500px]">
