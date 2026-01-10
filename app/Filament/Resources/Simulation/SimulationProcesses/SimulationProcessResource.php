@@ -70,6 +70,11 @@ class SimulationProcessResource extends Resource
                             ->label('Foto Cargada')
                             ->disabled()
                             ->displayFormat('d/m/Y H:i'),    
+                        DateTimePicker::make('photo_reviewed_at')
+                            ->label('Foto Verificada')
+                            ->disabled()
+                            ->displayFormat('d/m/Y H:i')
+                            ->helperText('Fecha y hora en que la foto fue aprobada'),
                         DateTimePicker::make('registration_at')
                             ->label('Inscripción')
                             ->disabled()
@@ -114,6 +119,14 @@ class SimulationProcessResource extends Resource
                     ->label('Foto')
                     ->boolean()
                     ->getStateUsing(fn ($record) => !is_null($record->photo_at))
+                    ->trueIcon(Heroicon::OutlinedCheckCircle)
+                    ->falseIcon(Heroicon::OutlinedXCircle)
+                    ->trueColor('success')
+                    ->falseColor('danger'),
+                IconColumn::make('photo_reviewed_at')
+                    ->label('Foto Verificada')
+                    ->boolean()
+                    ->getStateUsing(fn ($record) => !is_null($record->photo_reviewed_at))
                     ->trueIcon(Heroicon::OutlinedCheckCircle)
                     ->falseIcon(Heroicon::OutlinedXCircle)
                     ->trueColor('success')

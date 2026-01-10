@@ -31,4 +31,12 @@ class Classroom extends Model
         'special' => 'boolean',
         'vocational' => 'boolean',
     ];
+
+    /**
+     * Relación con los postulantes del simulacro asignados a esta aula
+     */
+    public function simulationApplicants()
+    {
+        return $this->hasMany(\App\Models\Simulation\SimulationApplicant::class);
+    }
 }

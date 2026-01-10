@@ -16,9 +16,11 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Storage;
 use UnitEnum;
+use Livewire\WithPagination;
 
 class ReviewPhotos extends Page
 {
+    use WithPagination;
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCamera;
     protected static ?string $navigationLabel = 'Revisar Fotos';
     protected static ?string $title = 'Revisar Fotos de Postulantes';
@@ -34,6 +36,11 @@ class ReviewPhotos extends Page
     public string $rejectReason = '';
     public ?int $rejectingPhotoId = null;
 
+    public int $perPage = 50;
+    public int $totalPending = 0;
+    public int $currentPage = 1;
+    public int $lastPage = 1;
+
     public function mount(): void
     {
         // Seleccionar simulacro activo por defecto
@@ -47,6 +54,9 @@ class ReviewPhotos extends Page
         if (!$this->selectedSimulationId) {
             $this->pendingPhotos = [];
             $this->currentIndex = 0;
+            $this->totalPending = 0;
+            $this->currentPage = 1;
+            $this->lastPage = 1;
             return;
         }
 
@@ -63,8 +73,14 @@ class ReviewPhotos extends Page
             $query->where('dni', 'like', '%' . $this->searchDni . '%');
         }
 
-        $this->pendingPhotos = $query->orderBy('created_at', 'asc')
-            ->get()
+        $paginator = $query->orderBy('created_at', 'asc')
+            ->paginate($this->perPage, pageName: 'photos');
+
+        $this->totalPending = (int) $paginator->total();
+        $this->currentPage = (int) $paginator->currentPage();
+        $this->lastPage = (int) max(1, $paginator->lastPage());
+
+        $this->pendingPhotos = collect($paginator->items())
             ->map(function ($applicant) {
                 return [
                     'id' => $applicant->id,
@@ -77,6 +93,7 @@ class ReviewPhotos extends Page
                     'photo_at' => $applicant->simulationProcess->photo_at?->format('d/m/Y H:i'),
                 ];
             })
+            ->values()
             ->toArray();
 
         // Resetear índice si está fuera de rango
@@ -89,18 +106,42 @@ class ReviewPhotos extends Page
     {
         $this->currentIndex = 0;
         $this->searchDni = '';
+        $this->resetPage('photos');
         $this->loadPendingPhotos();
     }
 
     public function updatedSearchDni(): void
     {
         $this->currentIndex = 0;
+        $this->resetPage('photos');
         $this->loadPendingPhotos();
     }
 
     public function clearSearch(): void
     {
         $this->searchDni = '';
+        $this->currentIndex = 0;
+        $this->resetPage('photos');
+        $this->loadPendingPhotos();
+    }
+
+    public function nextPagePhotos(): void
+    {
+        $this->nextPage('photos');
+        $this->currentIndex = 0;
+        $this->loadPendingPhotos();
+    }
+
+    public function previousPagePhotos(): void
+    {
+        $this->previousPage('photos');
+        $this->currentIndex = 0;
+        $this->loadPendingPhotos();
+    }
+
+    public function gotoPagePhotos(int $page): void
+    {
+        $this->gotoPage($page, 'photos');
         $this->currentIndex = 0;
         $this->loadPendingPhotos();
     }
@@ -243,6 +284,6 @@ class ReviewPhotos extends Page
 
     public function getPendingCountProperty(): int
     {
-        return count($this->pendingPhotos);
+        return $this->totalPending;
     }
 }

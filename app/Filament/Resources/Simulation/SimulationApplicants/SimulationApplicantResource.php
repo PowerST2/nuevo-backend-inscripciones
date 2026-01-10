@@ -77,6 +77,11 @@ class SimulationApplicantResource extends Resource
                     ->required()
                     ->searchable()
                     ->preload(),
+                Select::make('classroom_id')
+                    ->label('Aula')
+                    ->relationship('classroom', 'code')
+                    ->searchable()
+                    ->preload(),
             ]);
     }
 
@@ -112,6 +117,9 @@ class SimulationApplicantResource extends Resource
                     ->searchable(),
                 TextColumn::make('examSimulation.code')
                     ->label('Simulacro')
+                    ->sortable(),
+                TextColumn::make('classroom.code')
+                    ->label('Aula')
                     ->sortable(),
                 TextColumn::make('created_at')
                     ->dateTime()

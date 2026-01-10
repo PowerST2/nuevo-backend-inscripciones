@@ -2,7 +2,6 @@
     @if($this->getActiveSimulation())
         @php
             $simulation = $this->getActiveSimulation();
-            $stats = $this->getPortfolioStats();
         @endphp
 
         {{-- Información del Simulacro --}}
@@ -46,9 +45,9 @@
                 icon="heroicon-o-document-arrow-down"
             >
                 Cartera de Pagos
-                @if($stats['pending'] > 0)
+                @if($this->getPortfolioStats()['pending'] > 0)
                     <x-filament::badge color="warning" size="sm" class="ml-2">
-                        {{ $stats['pending'] }}
+                        {{ $this->getPortfolioStats()['pending'] }}
                     </x-filament::badge>
                 @endif
             </x-filament::tabs.item>
@@ -114,6 +113,16 @@
                         </div>
 
                         @if(count($this->processResults['details']) > 0)
+                            @php
+                                $totalDetails = count($this->processResults['details']);
+                                $totalPages = ceil($totalDetails / $this->processResultsPerPage);
+                                $offset = ($this->processResultsPage - 1) * $this->processResultsPerPage;
+                                $paginatedDetails = array_slice(
+                                    $this->processResults['details'],
+                                    $offset,
+                                    $this->processResultsPerPage
+                                );
+                            @endphp
                             <div class="fi-ta rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 overflow-hidden">
                                 <div class="fi-ta-content overflow-x-auto">
                                     <table class="fi-ta-table w-full table-auto divide-y divide-gray-200 text-start dark:divide-white/5">
@@ -126,7 +135,7 @@
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-200 dark:divide-white/5">
-                                            @foreach($this->processResults['details'] as $detail)
+                                            @foreach($paginatedDetails as $detail)
                                                 <tr class="fi-ta-row hover:bg-gray-50 dark:hover:bg-white/5 transition">
                                                     <td class="fi-ta-cell px-4 py-3 text-sm text-gray-950 dark:text-white font-medium">{{ $detail['dni'] }}</td>
                                                     <td class="fi-ta-cell px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{{ $detail['name'] ?? '-' }}</td>
@@ -148,6 +157,39 @@
                                     </table>
                                 </div>
                             </div>
+
+                            {{-- Controles de paginación --}}
+                            @if($totalPages > 1)
+                                <div class="flex items-center justify-between mt-4 px-4 py-3 bg-gray-50 dark:bg-white/5 rounded-lg">
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                                        Mostrando {{ $offset + 1 }} a {{ min($offset + $this->processResultsPerPage, $totalDetails) }} de {{ $totalDetails }} registros
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <x-filament::button 
+                                            :disabled="$this->processResultsPage === 1"
+                                            size="sm"
+                                            color="gray"
+                                            icon="heroicon-o-chevron-left"
+                                            wire:click="$set('processResultsPage', {{ max(1, $this->processResultsPage - 1) }})"
+                                        >
+                                            Anterior
+                                        </x-filament::button>
+                                        <div class="flex items-center gap-1">
+                                            <span class="text-sm text-gray-600 dark:text-gray-300">Página {{ $this->processResultsPage }} de {{ $totalPages }}</span>
+                                        </div>
+                                        <x-filament::button 
+                                            :disabled="$this->processResultsPage === $totalPages"
+                                            size="sm"
+                                            color="gray"
+                                            icon="heroicon-o-chevron-right"
+                                            icon-position="after"
+                                            wire:click="$set('processResultsPage', {{ min($totalPages, $this->processResultsPage + 1) }})"
+                                        >
+                                            Siguiente
+                                        </x-filament::button>
+                                    </div>
+                                </div>
+                            @endif
                         @endif
                     </x-filament::section>
                 @endif
@@ -158,17 +200,12 @@
         @if($activeTab === 'portfolio')
             <div class="mt-6 space-y-6">
                 {{-- Estadísticas de Cartera --}}
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                @php $stats = $this->getPortfolioStats(); @endphp
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <x-filament::section compact>
                         <div class="text-center">
                             <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['total'] }}</p>
                             <p class="text-xs text-gray-500 dark:text-gray-400">Total Registros</p>
-                        </div>
-                    </x-filament::section>
-                    <x-filament::section compact>
-                        <div class="text-center">
-                            <p class="text-2xl font-bold text-warning-600 dark:text-warning-400">{{ $stats['pending'] }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Pendientes</p>
                         </div>
                     </x-filament::section>
                     <x-filament::section compact>
@@ -179,20 +216,8 @@
                     </x-filament::section>
                     <x-filament::section compact>
                         <div class="text-center">
-                            <p class="text-2xl font-bold text-primary-600 dark:text-primary-400">{{ $stats['paid'] }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Pagados</p>
-                        </div>
-                    </x-filament::section>
-                    <x-filament::section compact>
-                        <div class="text-center">
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white">S/ {{ number_format($stats['total_amount'], 2) }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Monto Total</p>
-                        </div>
-                    </x-filament::section>
-                    <x-filament::section compact>
-                        <div class="text-center">
-                            <p class="text-2xl font-bold text-warning-600 dark:text-warning-400">S/ {{ number_format($stats['pending_amount'], 2) }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Monto Pendiente</p>
+                            <p class="text-2xl font-bold text-warning-600 dark:text-warning-400">{{ $stats['pending'] }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Pendiente a Enviar</p>
                         </div>
                     </x-filament::section>
                 </div>

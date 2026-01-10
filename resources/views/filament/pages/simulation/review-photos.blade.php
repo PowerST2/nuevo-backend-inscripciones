@@ -176,7 +176,7 @@
                 </div>
 
                 {{-- Navegación inferior --}}
-                @if(count($pendingPhotos) > 1)
+                @if(count($pendingPhotos) > 0)
                     <div class="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-6 py-4">
                         <div class="flex items-center justify-between">
                             {{-- Botón anterior --}}
@@ -192,7 +192,7 @@
                             {{-- Indicadores de posición --}}
                             <div class="flex items-center gap-2">
                                 <span class="text-sm text-gray-600 dark:text-gray-400">
-                                    {{ $currentIndex + 1 }} de {{ count($pendingPhotos) }}
+                                    {{ $currentIndex + 1 }} de {{ count($pendingPhotos) }} en esta página
                                 </span>
                                 
                                 {{-- Mini thumbnails --}}
@@ -220,6 +220,21 @@
                                 :disabled="$currentIndex >= count($pendingPhotos) - 1"
                             >
                                 Siguiente
+                                <x-filament::icon icon="heroicon-m-chevron-right" class="h-5 w-5" />
+                            </x-filament::button>
+                        </div>
+
+                        {{-- Paginación --}}
+                        <div class="mt-4 flex items-center justify-center gap-3">
+                            <x-filament::button color="gray" wire:click="previousPagePhotos" :disabled="$this->currentPage <= 1">
+                                <x-filament::icon icon="heroicon-m-chevron-left" class="h-5 w-5" />
+                                Página anterior
+                            </x-filament::button>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">
+                                Página {{ $this->currentPage }} de {{ $this->lastPage }}
+                            </span>
+                            <x-filament::button color="gray" wire:click="nextPagePhotos" :disabled="$this->currentPage >= $this->lastPage">
+                                Siguiente página
                                 <x-filament::icon icon="heroicon-m-chevron-right" class="h-5 w-5" />
                             </x-filament::button>
                         </div>
