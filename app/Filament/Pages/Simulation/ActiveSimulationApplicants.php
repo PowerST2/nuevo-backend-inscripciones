@@ -20,6 +20,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Facades\Excel;
+use Filament\Facades\Filament;
 use UnitEnum;
 
 class ActiveSimulationApplicants extends Page implements HasTable
@@ -312,11 +313,34 @@ class ActiveSimulationApplicants extends Page implements HasTable
                     ->modalHeading('Eliminar Postulante')
                     ->modalDescription(fn(SimulationApplicant $record): string => "¿Está seguro que desea eliminar a {$record->full_name} ({$record->dni})? Esta acción no se puede deshacer.")
                     ->modalSubmitActionLabel('Sí, eliminar')
-                    ->action(fn(SimulationApplicant $record) => $record->delete()),
+                    ->action(fn(SimulationApplicant $record) => $record->delete())
+                    ->visible($this->canDeleteApplicants()),
             ])
             ->defaultSort('created_at', 'desc')
             ->striped()
             ->paginated([10, 25, 50, 100])
             ->poll('30s');
+    }
+
+    protected function canDeleteApplicants(): bool
+    {
+        $user = Filament::auth()?->user();
+
+        if (!$user) {
+            return false;
+        }
+
+        // Super admin siempre puede eliminar
+        if ($user->hasRole('super_admin')) {
+            return true;
+        }
+
+        // Rol de sistemas puede eliminar
+        if ($user->hasRole('sistemas')) {
+            return true;
+        }
+
+        
+        return false;
     }
 }

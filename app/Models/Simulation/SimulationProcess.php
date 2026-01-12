@@ -2,6 +2,7 @@
 
 namespace App\Models\Simulation;
 
+use App\Notifications\Simulation\ProcessStepCompleted;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Storage;
@@ -68,7 +69,14 @@ class SimulationProcess extends Model
         $this->photo_status = self::PHOTO_STATUS_PENDING;
         $this->photo_rejected_reason = null;
         $this->photo_reviewed_at = null;
-        return $this->save();
+        $saved = $this->save();
+        
+        // Enviar notificación de pre-registro completado
+        if ($saved && $this->simulationApplicant && $this->simulationApplicant->email) {
+            $this->simulationApplicant->notify(new ProcessStepCompleted('pre_registration', $this->simulationApplicant));
+        }
+        
+        return $saved;
     }
 
     /**
@@ -104,17 +112,25 @@ class SimulationProcess extends Model
         $this->photo_rejected_reason = null;
         $this->photo_reviewed_at = now('America/Lima');
         
-        // Copiar foto a carpeta de aprobadas
+        // Copiar foto a carpeta de aprobadas con nombre = DNI.extension
         $applicant = $this->simulationApplicant;
         if ($applicant && $applicant->photo_path && Storage::disk('public')->exists($applicant->photo_path)) {
             $simulationCode = $applicant->examSimulation->code ?? $applicant->exam_simulation_id;
-            $originalFilename = basename($applicant->photo_path);
-            $approvedPath = 'simulation-photos-approved/' . $simulationCode . '/' . $originalFilename;
+            $extension = pathinfo($applicant->photo_path, PATHINFO_EXTENSION);
+            $approvedFilename = $applicant->dni . '.' . $extension;
+            $approvedPath = 'simulation-photos-approved/' . $simulationCode . '/' . $approvedFilename;
             
             Storage::disk('public')->copy($applicant->photo_path, $approvedPath);
         }
         
-        return $this->save();
+        $saved = $this->save();
+        
+        // Enviar notificación de foto aprobada
+        if ($saved && $applicant && $applicant->email) {
+            $applicant->notify(new ProcessStepCompleted('photo_approved', $applicant));
+        }
+        
+        return $saved;
     }
 
     /**
@@ -127,7 +143,14 @@ class SimulationProcess extends Model
         $this->photo_status = self::PHOTO_STATUS_REJECTED;
         $this->photo_rejected_reason = $reason;
         $this->photo_reviewed_at = now('America/Lima');
-        return $this->save();
+        $saved = $this->save();
+        
+        // Enviar notificación de foto rechazada con el motivo
+        if ($saved && $this->simulationApplicant && $this->simulationApplicant->email) {
+            $this->simulationApplicant->notify(new ProcessStepCompleted('photo_rejected', $this->simulationApplicant, $reason));
+        }
+        
+        return $saved;
     }
 
     public function confirmData(): bool
@@ -142,7 +165,14 @@ class SimulationProcess extends Model
         // Solo confirma datos, NO completa registration
         $this->data_confirmation_at = $now;
         
-        return $this->save();
+        $saved = $this->save();
+        
+        // Enviar notificación de confirmación de datos
+        if ($saved && $this->simulationApplicant && $this->simulationApplicant->email) {
+            $this->simulationApplicant->notify(new ProcessStepCompleted('data_confirmation', $this->simulationApplicant));
+        }
+        
+        return $saved;
     }
 
     /**
@@ -158,7 +188,14 @@ class SimulationProcess extends Model
         // Forzamos hora de Lima (UTC-5)
         $this->registration_at = now('America/Lima');
         
-        return $this->save();
+        $saved = $this->save();
+        
+        // Enviar notificación de inscripción completada
+        if ($saved && $this->simulationApplicant && $this->simulationApplicant->email) {
+            $this->simulationApplicant->notify(new ProcessStepCompleted('registration', $this->simulationApplicant));
+        }
+        
+        return $saved;
     }
 
     public function markPaymentComplete(): bool
@@ -166,7 +203,14 @@ class SimulationProcess extends Model
         if (is_null($this->payment_at)) {
             // Forzamos hora de Lima (UTC-5)
             $this->payment_at = now('America/Lima');
-            return $this->save();
+            $saved = $this->save();
+            
+            // Enviar notificación de pago confirmado
+            if ($saved && $this->simulationApplicant && $this->simulationApplicant->email) {
+                $this->simulationApplicant->notify(new ProcessStepCompleted('payment', $this->simulationApplicant));
+            }
+            
+            return $saved;
         }
         
         return true;

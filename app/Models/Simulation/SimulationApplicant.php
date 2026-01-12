@@ -5,11 +5,12 @@ namespace App\Models\Simulation;
 use App\Traits\GeneratesRegistrationCode;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 
 class SimulationApplicant extends Model
 {
-    use HasFactory, GeneratesRegistrationCode;
+    use HasFactory, GeneratesRegistrationCode, Notifiable;
 
     protected $fillable = [
         'uuid',
