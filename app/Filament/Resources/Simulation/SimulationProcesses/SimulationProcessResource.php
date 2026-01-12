@@ -158,7 +158,7 @@ class SimulationProcessResource extends Resource
                 TextColumn::make('simulationApplicant.examSimulation.code')
                     ->label('Simulacro')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true), 
             ])
             ->defaultSort('id', 'desc')
             ->filters([
