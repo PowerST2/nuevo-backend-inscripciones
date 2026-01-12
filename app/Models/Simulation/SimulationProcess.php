@@ -162,14 +162,23 @@ class SimulationProcess extends Model
         // Forzamos hora de Lima (UTC-5)
         $now = now('America/Lima');
 
-        // Solo confirma datos, NO completa registration
         $this->data_confirmation_at = $now;
         
         $saved = $this->save();
         
-        // Enviar notificación de confirmación de datos
-        if ($saved && $this->simulationApplicant && $this->simulationApplicant->email) {
-            $this->simulationApplicant->notify(new ProcessStepCompleted('data_confirmation', $this->simulationApplicant));
+        if ($saved && $this->simulationApplicant) {
+            $applicant = $this->simulationApplicant;
+            // Asignar código si aún no tiene
+            if (empty($applicant->code)) {
+                $sequence = $applicant->getKey();
+                $applicant->code = SimulationApplicant::generateRegistrationCode((int) $sequence);
+                $applicant->save();
+            }
+
+            // Enviar notificación de inscripción (ya con código asignado)
+            if ($applicant->email) {
+                $applicant->notify(new ProcessStepCompleted('registration', $applicant));
+            }
         }
         
         return $saved;
