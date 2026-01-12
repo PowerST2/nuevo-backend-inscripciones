@@ -66,12 +66,12 @@ class ActiveSimulationApplicants extends Page implements HasTable
             $paid = SimulationApplicant::where('exam_simulation_id', $activeSimulation->id)
                 ->whereHas('simulationProcess', fn ($q) => $q->whereNotNull('payment_at'))
                 ->count();
-            $registered = SimulationApplicant::where('exam_simulation_id', $activeSimulation->id)
-                ->whereHas('simulationProcess', fn ($q) => $q->whereNotNull('registration_at'))
+            $confirmed = SimulationApplicant::where('exam_simulation_id', $activeSimulation->id)
+                ->whereHas('simulationProcess', fn ($q) => $q->whereNotNull('data_confirmation_at'))
                 ->count();
             $modalityText = $activeSimulation->is_virtual ? 'Virtual' : 'Presencial';
 
-            return "Modalidad: {$modalityText} | Total: {$total} | Con foto: {$withPhoto} | Pagados: {$paid} | Inscritos: {$registered}";
+            return "Modalidad: {$modalityText} | Total: {$total} | Con foto: {$withPhoto} | Pagados: {$paid} | Confirmados: {$confirmed}";
         }
 
         return 'Configure un simulacro activo para ver los postulantes';
@@ -141,12 +141,12 @@ class ActiveSimulationApplicants extends Page implements HasTable
             };
         }
 
-        if (!empty($filters['registration_status']['value'])) {
-            $query = match ($filters['registration_status']['value']) {
-                'registered' => $query->whereHas('simulationProcess', fn ($q) => $q->whereNotNull('registration_at')),
-                'not_registered' => $query->where(function ($q) {
+        if (!empty($filters['confirmation_status']['value'])) {
+            $query = match ($filters['confirmation_status']['value']) {
+                'confirmed' => $query->whereHas('simulationProcess', fn ($q) => $q->whereNotNull('data_confirmation_at')),
+                'not_confirmed' => $query->where(function ($q) {
                     $q->whereDoesntHave('simulationProcess')
-                        ->orWhereHas('simulationProcess', fn ($sq) => $sq->whereNull('registration_at'));
+                        ->orWhereHas('simulationProcess', fn ($sq) => $sq->whereNull('data_confirmation_at'));
                 }),
                 default => $query,
             };
@@ -223,8 +223,8 @@ class ActiveSimulationApplicants extends Page implements HasTable
                     ->dateTime('d/m/Y H:i')
                     ->placeholder('Pendiente')
                     ->sortable(),
-                TextColumn::make('simulationProcess.registration_at')
-                    ->label('Inscrito')
+                TextColumn::make('simulationProcess.data_confirmation_at')
+                    ->label('Confirmado')
                     ->dateTime('d/m/Y H:i')
                     ->placeholder('Pendiente')
                     ->sortable(),
@@ -266,24 +266,54 @@ class ActiveSimulationApplicants extends Page implements HasTable
                             default => $query,
                         };
                     }),
-                SelectFilter::make('registration_status')
-                    ->label('Estado de Inscripción')
+                SelectFilter::make('confirmation_status')
+                    ->label('Estado de Confirmación')
                     ->options([
-                        'registered' => 'Inscritos',
-                        'not_registered' => 'Sin inscribir',
+                        'confirmed' => 'Confirmados',
+                        'not_confirmed' => 'Sin confirmar',
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return match ($data['value']) {
-                            'registered' => $query->whereHas('simulationProcess', fn ($q) => $q->whereNotNull('registration_at')),
-                            'not_registered' => $query->where(function ($q) {
+                            'confirmed' => $query->whereHas('simulationProcess', fn ($q) => $q->whereNotNull('data_confirmation_at')),
+                            'not_confirmed' => $query->where(function ($q) {
                                 $q->whereDoesntHave('simulationProcess')
-                                    ->orWhereHas('simulationProcess', fn ($sq) => $sq->whereNull('registration_at'));
+                                    ->orWhereHas('simulationProcess', fn ($sq) => $sq->whereNull('data_confirmation_at'));
                             }),
                             default => $query,
                         };
                     }),
             ])
             ->actions([
+                Action::make('generate_code')
+                    ->label('')
+                    ->icon('heroicon-o-key')
+                    ->color('success')
+                    ->tooltip('Generar código')
+                    ->requiresConfirmation()
+                    ->modalHeading('Generar Código')
+                    ->modalDescription(fn(SimulationApplicant $record): string => "Generar código de inscripción para {$record->full_name}")
+                    ->modalSubmitActionLabel('Generar')
+                    ->action(function (SimulationApplicant $record) {
+                        if (empty($record->code)) {
+                            $sequence = $record->getKey();
+                            $record->code = SimulationApplicant::generateRegistrationCode((int) $sequence);
+                            $record->save();
+                            Notification::make()
+                                ->title('Código generado')
+                                ->body("Código: {$record->code}")
+                                ->success()
+                                ->send();
+                        } else {
+                            Notification::make()
+                                ->title('Ya tiene código')
+                                ->body("Código existente: {$record->code}")
+                                ->warning()
+                                ->send();
+                        }
+                    })
+                    ->visible(fn(SimulationApplicant $record): bool => 
+                        $record->simulationProcess?->data_confirmation_at !== null && empty($record->code)
+                    ),
                 Action::make('view_photo')
                     ->label('')
                     ->icon('heroicon-o-photo')
@@ -314,7 +344,7 @@ class ActiveSimulationApplicants extends Page implements HasTable
                     ->modalDescription(fn(SimulationApplicant $record): string => "¿Está seguro que desea eliminar a {$record->full_name} ({$record->dni})? Esta acción no se puede deshacer.")
                     ->modalSubmitActionLabel('Sí, eliminar')
                     ->action(fn(SimulationApplicant $record) => $record->delete())
-                    ->visible($this->canDeleteApplicants()),
+                    ->visible(fn(): bool => $this->canDeleteApplicants()),
             ])
             ->defaultSort('created_at', 'desc')
             ->striped()
@@ -340,7 +370,7 @@ class ActiveSimulationApplicants extends Page implements HasTable
             return true;
         }
 
-        
+
         return false;
     }
 }

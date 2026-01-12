@@ -147,10 +147,10 @@ class SimulationProcessResource extends Resource
                     ->falseIcon(Heroicon::OutlinedXCircle)
                     ->trueColor('success')
                     ->falseColor('danger'),
-                IconColumn::make('registration_at')
-                    ->label('Inscripción')
+                IconColumn::make('data_confirmation_at')
+                    ->label('Confirmación')
                     ->boolean()
-                    ->getStateUsing(fn ($record) => !is_null($record->registration_at))
+                    ->getStateUsing(fn ($record) => !is_null($record->data_confirmation_at))
                     ->trueIcon(Heroicon::OutlinedCheckCircle)
                     ->falseIcon(Heroicon::OutlinedXCircle)
                     ->trueColor('success')
@@ -171,14 +171,14 @@ class SimulationProcessResource extends Resource
                         true: fn ($query) => $query->whereNotNull('payment_at'),
                         false: fn ($query) => $query->whereNull('payment_at'),
                     ),
-                TernaryFilter::make('registration_status')
-                    ->label('Estado de Inscripción')
+                TernaryFilter::make('confirmation_status')
+                    ->label('Estado de Confirmación')
                     ->placeholder('Todos')
-                    ->trueLabel('Inscrito')
-                    ->falseLabel('Sin inscribir')
+                    ->trueLabel('Confirmado')
+                    ->falseLabel('Sin confirmar')
                     ->queries(
-                        true: fn ($query) => $query->whereNotNull('registration_at'),
-                        false: fn ($query) => $query->whereNull('registration_at'),
+                        true: fn ($query) => $query->whereNotNull('data_confirmation_at'),
+                        false: fn ($query) => $query->whereNull('data_confirmation_at'),
                     ),
             ])
             ->recordActions([
