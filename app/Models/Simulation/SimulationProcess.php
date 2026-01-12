@@ -96,13 +96,24 @@ class SimulationProcess extends Model
     }
 
     /**
-     * Aprobar la foto
+     * Aprobar la foto y copiarla a la carpeta de aprobadas
      */
     public function approvePhoto(): bool
     {
         $this->photo_status = self::PHOTO_STATUS_APPROVED;
         $this->photo_rejected_reason = null;
         $this->photo_reviewed_at = now('America/Lima');
+        
+        // Copiar foto a carpeta de aprobadas
+        $applicant = $this->simulationApplicant;
+        if ($applicant && $applicant->photo_path && Storage::disk('public')->exists($applicant->photo_path)) {
+            $simulationCode = $applicant->examSimulation->code ?? $applicant->exam_simulation_id;
+            $originalFilename = basename($applicant->photo_path);
+            $approvedPath = 'simulation-photos-approved/' . $simulationCode . '/' . $originalFilename;
+            
+            Storage::disk('public')->copy($applicant->photo_path, $approvedPath);
+        }
+        
         return $this->save();
     }
 

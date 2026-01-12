@@ -206,11 +206,13 @@ class SimulationApplicantController extends Controller
             Storage::disk('public')->delete($applicant->photo_path);
         }
 
-        // Guardar nueva foto
+        // Guardar nueva foto con formato dni_yymmddhhss
         $photo = $request->file('photo');
-        $filename = $applicant->dni . '_' . time() . '.' . $photo->getClientOriginalExtension();
+        $simulationCode = $applicant->examSimulation->code ?? $applicant->exam_simulation_id;
+        $timestamp = now('America/Lima')->format('ymdHis');
+        $filename = $applicant->dni . '_' . $timestamp . '.' . $photo->getClientOriginalExtension();
         $photoPath = $photo->storeAs(
-            'simulation-photos/' . $applicant->exam_simulation_id, 
+            'simulation-photos/' . $simulationCode, 
             $filename, 
             'public'
         );
@@ -399,11 +401,13 @@ class SimulationApplicantController extends Controller
             Storage::disk('public')->delete($applicant->photo_path);
         }
 
-        // Guardar nueva foto
+        // Guardar nueva foto con formato dni_yymmddhhss
         $photo = $request->file('photo');
-        $filename = $validated['dni'] . '_' . time() . '.' . $photo->getClientOriginalExtension();
+        $simulationCode = $applicant->examSimulation->code ?? $applicant->exam_simulation_id;
+        $timestamp = now('America/Lima')->format('ymdHis');
+        $filename = $validated['dni'] . '_' . $timestamp . '.' . $photo->getClientOriginalExtension();
         $photoPath = $photo->storeAs(
-            'simulation-photos/' . $applicant->exam_simulation_id, 
+            'simulation-photos/' . $simulationCode, 
             $filename, 
             'public'
         );

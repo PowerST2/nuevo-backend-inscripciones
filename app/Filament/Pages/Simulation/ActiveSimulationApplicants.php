@@ -2,12 +2,14 @@
 
 namespace App\Filament\Pages\Simulation;
 
+use App\Exports\SimulationApplicantsExport;
 use App\Models\Simulation\ExamSimulation;
 use App\Models\Simulation\SimulationApplicant;
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Carbon\Carbon;
 use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
@@ -17,6 +19,7 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Maatwebsite\Excel\Facades\Excel;
 use UnitEnum;
 
 class ActiveSimulationApplicants extends Page implements HasTable
@@ -59,10 +62,15 @@ class ActiveSimulationApplicants extends Page implements HasTable
                 ->whereNotNull('photo_path')
                 ->where('photo_path', '!=', '')
                 ->count();
-            $withoutPhoto = $total - $withPhoto;
+            $paid = SimulationApplicant::where('exam_simulation_id', $activeSimulation->id)
+                ->whereHas('simulationProcess', fn ($q) => $q->whereNotNull('payment_at'))
+                ->count();
+            $registered = SimulationApplicant::where('exam_simulation_id', $activeSimulation->id)
+                ->whereHas('simulationProcess', fn ($q) => $q->whereNotNull('registration_at'))
+                ->count();
             $modalityText = $activeSimulation->is_virtual ? 'Virtual' : 'Presencial';
 
-            return "Modalidad: {$modalityText} | Total: {$total} | Con foto: {$withPhoto} | Sin foto: {$withoutPhoto}";
+            return "Modalidad: {$modalityText} | Total: {$total} | Con foto: {$withPhoto} | Pagados: {$paid} | Inscritos: {$registered}";
         }
 
         return 'Configure un simulacro activo para ver los postulantes';
@@ -76,6 +84,96 @@ class ActiveSimulationApplicants extends Page implements HasTable
             ->where('exam_date_start', '<=', $today)
             ->where('exam_date_end', '>=', $today)
             ->first();
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('export')
+                ->label('Exportar Excel')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->color('success')
+                ->action(function () {
+                    return $this->exportToExcel();
+                })
+                ->visible(fn () => $this->getActiveSimulation() !== null),
+        ];
+    }
+
+    public function exportToExcel()
+    {
+        $activeSimulation = $this->getActiveSimulation();
+
+        if (!$activeSimulation) {
+            Notification::make()
+                ->title('Error')
+                ->body('No hay simulacro activo.')
+                ->danger()
+                ->send();
+            return null;
+        }
+
+        $query = SimulationApplicant::where('exam_simulation_id', $activeSimulation->id)
+            ->with('simulationProcess');
+
+        // Aplicar filtros activos
+        $filters = $this->tableFilters;
+        
+        if (!empty($filters['has_photo']['value'])) {
+            $query = match ($filters['has_photo']['value']) {
+                'with_photo' => $query->whereNotNull('photo_path')->where('photo_path', '!=', ''),
+                'without_photo' => $query->where(function ($q) {
+                    $q->whereNull('photo_path')->orWhere('photo_path', '');
+                }),
+                default => $query,
+            };
+        }
+
+        if (!empty($filters['payment_status']['value'])) {
+            $query = match ($filters['payment_status']['value']) {
+                'paid' => $query->whereHas('simulationProcess', fn ($q) => $q->whereNotNull('payment_at')),
+                'not_paid' => $query->where(function ($q) {
+                    $q->whereDoesntHave('simulationProcess')
+                        ->orWhereHas('simulationProcess', fn ($sq) => $sq->whereNull('payment_at'));
+                }),
+                default => $query,
+            };
+        }
+
+        if (!empty($filters['registration_status']['value'])) {
+            $query = match ($filters['registration_status']['value']) {
+                'registered' => $query->whereHas('simulationProcess', fn ($q) => $q->whereNotNull('registration_at')),
+                'not_registered' => $query->where(function ($q) {
+                    $q->whereDoesntHave('simulationProcess')
+                        ->orWhereHas('simulationProcess', fn ($sq) => $sq->whereNull('registration_at'));
+                }),
+                default => $query,
+            };
+        }
+
+        $applicants = $query->orderBy('created_at', 'desc')->get();
+
+        if ($applicants->isEmpty()) {
+            Notification::make()
+                ->title('Sin datos')
+                ->body('No hay postulantes para exportar con los filtros seleccionados.')
+                ->warning()
+                ->send();
+            return null;
+        }
+
+        $filename = 'postulantes_' . $activeSimulation->code . '_' . now()->format('Ymd_His') . '.xlsx';
+
+        Notification::make()
+            ->title('Exportación iniciada')
+            ->body("Se exportarán {$applicants->count()} registros.")
+            ->success()
+            ->send();
+
+        return Excel::download(
+            new SimulationApplicantsExport($applicants, $activeSimulation->code),
+            $filename
+        );
     }
 
     public function table(Table $table): Table
@@ -147,6 +245,38 @@ class ActiveSimulationApplicants extends Page implements HasTable
                             'with_photo' => $query->whereNotNull('photo_path')->where('photo_path', '!=', ''),
                             'without_photo' => $query->where(function ($q) {
                                 $q->whereNull('photo_path')->orWhere('photo_path', '');
+                            }),
+                            default => $query,
+                        };
+                    }),
+                SelectFilter::make('payment_status')
+                    ->label('Estado de Pago')
+                    ->options([
+                        'paid' => 'Pagados',
+                        'not_paid' => 'Sin pagar',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return match ($data['value']) {
+                            'paid' => $query->whereHas('simulationProcess', fn ($q) => $q->whereNotNull('payment_at')),
+                            'not_paid' => $query->where(function ($q) {
+                                $q->whereDoesntHave('simulationProcess')
+                                    ->orWhereHas('simulationProcess', fn ($sq) => $sq->whereNull('payment_at'));
+                            }),
+                            default => $query,
+                        };
+                    }),
+                SelectFilter::make('registration_status')
+                    ->label('Estado de Inscripción')
+                    ->options([
+                        'registered' => 'Inscritos',
+                        'not_registered' => 'Sin inscribir',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return match ($data['value']) {
+                            'registered' => $query->whereHas('simulationProcess', fn ($q) => $q->whereNotNull('registration_at')),
+                            'not_registered' => $query->where(function ($q) {
+                                $q->whereDoesntHave('simulationProcess')
+                                    ->orWhereHas('simulationProcess', fn ($sq) => $sq->whereNull('registration_at'));
                             }),
                             default => $query,
                         };
