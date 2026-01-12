@@ -312,7 +312,9 @@ class ActiveSimulationApplicants extends Page implements HasTable
                         }
                     })
                     ->visible(fn(SimulationApplicant $record): bool => 
-                        $record->simulationProcess?->data_confirmation_at !== null && empty($record->code)
+                        $this->canGenerateCode() &&
+                        $record->simulationProcess?->data_confirmation_at !== null && 
+                        empty($record->code)
                     ),
                 Action::make('view_photo')
                     ->label('')
@@ -370,6 +372,27 @@ class ActiveSimulationApplicants extends Page implements HasTable
             return true;
         }
 
+
+        return false;
+    }
+
+    protected function canGenerateCode(): bool
+    {
+        $user = Filament::auth()?->user();
+
+        if (!$user) {
+            return false;
+        }
+
+        // Super admin siempre puede generar códigos
+        if ($user->hasRole('super_admin')) {
+            return true;
+        }
+
+        // Rol de sistemas puede generar códigos
+        if ($user->hasRole('sistemas')) {
+            return true;
+        }
 
         return false;
     }
