@@ -53,6 +53,8 @@ return [
     */
 
     'url' => env('APP_URL', 'http://localhost'),
+    'url_simulacro' => 'https://simulacro.admision.uni.edu.pe',
+    
 
     /*
     |--------------------------------------------------------------------------
