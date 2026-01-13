@@ -101,7 +101,13 @@ class SimulationProcessResource extends Resource
                     ->sortable(),
                 TextColumn::make('simulationApplicant.full_name')
                     ->label('Nombre Completo')
-                    ->searchable()
+                    ->searchable(query: function ($query, string $search): void {
+                        $query->whereHas('simulationApplicant', function ($q) use ($search) {
+                            $q->where('first_names', 'ilike', "%{$search}%")
+                              ->orWhere('last_name_father', 'ilike', "%{$search}%")
+                              ->orWhere('last_name_mother', 'ilike', "%{$search}%");
+                        });
+                    })
                     ->limit(30),
                 TextColumn::make('simulationApplicant.email')
                     ->label('Correo')
@@ -135,14 +141,6 @@ class SimulationProcessResource extends Resource
                     ->label('Pago')
                     ->boolean()
                     ->getStateUsing(fn ($record) => !is_null($record->payment_at))
-                    ->trueIcon(Heroicon::OutlinedCheckCircle)
-                    ->falseIcon(Heroicon::OutlinedXCircle)
-                    ->trueColor('success')
-                    ->falseColor('danger'),
-                IconColumn::make('data_confirmation_at')
-                    ->label('Confirmación')
-                    ->boolean()
-                    ->getStateUsing(fn ($record) => !is_null($record->data_confirmation_at))
                     ->trueIcon(Heroicon::OutlinedCheckCircle)
                     ->falseIcon(Heroicon::OutlinedXCircle)
                     ->trueColor('success')
