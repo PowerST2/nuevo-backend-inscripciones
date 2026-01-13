@@ -38,12 +38,12 @@ class ReviewPhotos extends Page
     public string $rejectReason = '';
     public string $rejectReasonSelected = '';
     public array $rejectReasons = [
-        'NO usar lentes',
-        'fondo blanco',
-        'sin ningun accesorio en la cara ( gorra)',
-        'no selfie',
-        'no foto de dni , ni copia',
-        'foto clara y mirando al frente',
+            'Uso de lentes no permitido' => 'Uso de lentes no permitido',
+            'El fondo debe ser de color blanco uniforme' => 'El fondo debe ser de color blanco uniforme',
+            'No se permiten accesorios faciales (gorra, sombrero, etc.)' => 'No se permiten accesorios faciales (gorra, sombrero, etc.)',
+            'No se aceptan fotografías tipo selfie' => 'No se aceptan fotografías tipo selfie',
+            'No se aceptan fotografías del DNI ni copias del mismo' => 'No se aceptan fotografías del DNI ni copias del mismo',
+            'La fotografía debe ser nítida y con el rostro al frente' => 'La fotografía debe ser nítida y con el rostro al frente',
     ];
     public ?int $rejectingPhotoId = null;
 
