@@ -127,7 +127,7 @@ class ProcessStepCompleted extends Notification implements ShouldQueue
 
     protected function registrationMessage($simulation): MailMessage
     {
-        $examDate = $simulation->exam_date_start ? \Carbon\Carbon::parse($simulation->exam_date_start)->format('d/m/Y') : 'Por confirmar';
+        $examDate = $simulation->exam_date ? \Carbon\Carbon::parse($simulation->exam_date)->format('d/m/Y') : 'Por confirmar';
         
         return (new MailMessage)
             ->subject("🎉 Inscripción completada - {$simulation->description}")
