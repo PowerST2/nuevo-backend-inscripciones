@@ -26,7 +26,6 @@ class Payment extends Model
         'operation',
         'payable_type',
         'payable_id',
-        'period_id',
         'process_type',
         'process_id',
         'user_id',
@@ -43,14 +42,6 @@ class Payment extends Model
     public function payable(): MorphTo
     {
         return $this->morphTo();
-    }
-
-    /**
-     * Relación con el periodo
-     */
-    public function period(): BelongsTo
-    {
-        return $this->belongsTo(Period::class);
     }
 
     /**

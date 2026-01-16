@@ -2,7 +2,6 @@
 
 namespace App\Observers\Simulation;
 
-use App\Models\Payment;
 use App\Models\PaymentPortfolio;
 use App\Models\Simulation\SimulationApplicant;
 use App\Models\Simulation\SimulationProcess;
@@ -24,34 +23,36 @@ class SimulationApplicantObserver
             'registration_at' => null,
         ]);
 
-        // Crear el registro de pago pendiente
-        $this->createPaymentRecord($simulationApplicant);
+        // Crear el registro de obligación de pago (cartera para OCEF)
+        $this->createPaymentObligation($simulationApplicant);
     }
 
     /**
-     * Crear registro de pago para el postulante
+     * Crear registro de obligación de pago (cartera) para el postulante.
+     * Este registro representa la deuda que se enviará al banco (OCEF).
+     * El pago real (Payment) se creará cuando se procese el CSV del banco confirmando el ingreso.
      */
-    private function createPaymentRecord(SimulationApplicant $applicant): void
+    private function createPaymentObligation(SimulationApplicant $applicant): void
     {
         // Obtener el simulacro con su tarifa
         $examSimulation = $applicant->examSimulation()->with('tariff')->first();
         
         if (!$examSimulation || !$examSimulation->tariff) {
-            return; // No crear pago si no hay tarifa configurada
+            return; // No crear obligación si no hay tarifa configurada
         }
 
         $tariff = $examSimulation->tariff;
 
-        // Generar número de recibo
-        $receipt = Payment::generateReceiptNumber('SIM');
+        // Generar número de recibo para la obligación
+        $receipt = PaymentPortfolio::generateReceiptNumber('SIM');
 
-        // Crear el registro de pago
-        $payment = Payment::create([
+        // Crear registro de cartera (obligación/deuda) - NO se crea Payment aquí
+        PaymentPortfolio::createObligation([
             'receipt' => $receipt,
             'service_code' => $tariff->code,
             'description' => $examSimulation->description,
             'amount' => $tariff->amount,
-            'payment_date' => now('America/Lima')->toDateString(),
+            'payment_date' => null, // Se llenará cuando se confirme el pago
             'document_number' => $applicant->dni,
             'client_name' => "{$applicant->first_names} {$applicant->last_name_father} {$applicant->last_name_mother}",
             'client_email' => $applicant->email,
@@ -60,8 +61,5 @@ class SimulationApplicantObserver
             'process_type' => 'simulation',
             'process_id' => $examSimulation->id,
         ]);
-
-        // Crear registro en cartera (histórico)
-        PaymentPortfolio::createFromPayment($payment);
     }
 }
