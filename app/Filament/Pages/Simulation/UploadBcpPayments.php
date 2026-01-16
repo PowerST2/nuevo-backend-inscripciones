@@ -3,6 +3,7 @@
 namespace App\Filament\Pages\Simulation;
 
 use App\Exports\PaymentExport;
+use App\Models\Payment;
 use App\Models\PaymentPortfolio;
 use App\Models\Simulation\ExamSimulation;
 use App\Models\Simulation\SimulationApplicant;
@@ -495,21 +496,51 @@ class UploadBcpPayments extends Page implements HasForms, HasTable
                     continue;
                 }
 
-                // Registrar pago - Usar la fecha/hora actual de Lima
-                $paymentDate = now('America/Lima');
-
-                $applicant->simulationProcess->payment_at = $paymentDate;
-                $applicant->simulationProcess->save();
-
-                // Marcar cartera como pagada para este postulante
-                PaymentPortfolio::where('process_type', 'simulation')
+                // Obtener la obligación de cartera existente
+                $portfolio = PaymentPortfolio::where('process_type', 'simulation')
                     ->where('process_id', $simulation->id)
                     ->where('payable_type', SimulationApplicant::class)
                     ->where('payable_id', $applicant->id)
-                    ->update([
+                    ->first();
+
+                // Fecha/hora de pago
+                $paymentDate = now('America/Lima');
+
+                // CREAR EL PAYMENT (ingreso real confirmado del banco)
+                $payment = Payment::create([
+                    'receipt' => Payment::generateReceiptNumber('PAG'),
+                    'service_code' => $portfolio?->service_code ?? $simulation->tariff?->code,
+                    'description' => $portfolio?->description ?? $simulation->description,
+                    'amount' => $monto ? (float) str_replace(',', '.', $monto) : ($portfolio?->amount ?? $simulation->tariff?->amount ?? 0),
+                    'payment_date' => $paymentDate->toDateString(),
+                    'document_number' => $dni,
+                    'client_name' => $applicant->full_name,
+                    'client_email' => $applicant->email,
+                    'bank' => 'BCP',
+                    'reference' => $recibo,
+                    'operation' => $operacion,
+                    'payable_type' => SimulationApplicant::class,
+                    'payable_id' => $applicant->id,
+                    'process_type' => 'simulation',
+                    'process_id' => $simulation->id,
+                    'user_id' => auth()->id(),
+                ]);
+
+                // Actualizar proceso del postulante
+                $applicant->simulationProcess->payment_at = $paymentDate;
+                $applicant->simulationProcess->save();
+
+                // Marcar cartera como pagada y vincular al Payment creado
+                if ($portfolio) {
+                    $portfolio->update([
                         'is_paid' => true,
                         'payment_date' => $paymentDate->toDateString(),
+                        'payment_id' => $payment->id,
+                        'bank' => 'BCP',
+                        'operation' => $operacion,
+                        'reference' => $recibo,
                     ]);
+                }
 
                 $results['processed']++;
                 $results['details'][] = [
@@ -519,9 +550,10 @@ class UploadBcpPayments extends Page implements HasForms, HasTable
                     'message' => 'Pago registrado',
                     'date' => $paymentDate->format('d/m/Y H:i'),
                     'csv_date' => $fechaPago,
+                    'payment_id' => $payment->id,
                 ];
 
-                Log::info("Pago BCP registrado: DNI {$dni}, Operación: {$operacion}, Monto: {$monto}");
+                Log::info("Pago BCP registrado: DNI {$dni}, Operación: {$operacion}, Monto: {$monto}, Payment ID: {$payment->id}");
             }
 
             DB::commit();

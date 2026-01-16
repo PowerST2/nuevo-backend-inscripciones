@@ -25,10 +25,8 @@ class PaymentPortfolio extends Model
         'operation',
         'payable_type',
         'payable_id',
-        'period_id',
         'process_type',
         'process_id',
-        'user_id',
         'is_paid',
         'is_sent',
         'sent_at',
@@ -50,22 +48,6 @@ class PaymentPortfolio extends Model
     public function payable(): MorphTo
     {
         return $this->morphTo();
-    }
-
-    /**
-     * Relación con el periodo
-     */
-    public function period(): BelongsTo
-    {
-        return $this->belongsTo(Period::class);
-    }
-
-    /**
-     * Relación con el usuario
-     */
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
 
     /**
@@ -117,32 +99,51 @@ class PaymentPortfolio extends Model
     }
 
     /**
-     * Crear registro de cartera desde un pago
+     * Crear registro de cartera (deuda/obligación) directamente.
+     * Se usa cuando un postulante se inscribe para generar la deuda que se enviará al OCEF.
      */
-    public static function createFromPayment(Payment $payment): self
+    public static function createObligation(array $data): self
     {
         return static::create([
-            'receipt' => $payment->receipt,
-            'service_code' => $payment->service_code,
-            'description' => $payment->description,
-            'amount' => $payment->amount,
-            'payment_date' => $payment->payment_date,
-            'document_number' => $payment->document_number,
-            'client_name' => $payment->client_name,
-            'client_email' => $payment->client_email,
-            'bank' => $payment->bank,
-            'reference' => $payment->reference,
-            'operation' => $payment->operation,
-            'payable_type' => $payment->payable_type,
-            'payable_id' => $payment->payable_id,
-            'period_id' => $payment->period_id,
-            'process_type' => $payment->process_type,
-            'process_id' => $payment->process_id,
-            'user_id' => $payment->user_id,
-            'payment_id' => $payment->id,
+            'receipt' => $data['receipt'],
+            'service_code' => $data['service_code'] ?? null,
+            'description' => $data['description'] ?? null,
+            'amount' => $data['amount'],
+            'payment_date' => $data['payment_date'] ?? null,
+            'document_number' => $data['document_number'],
+            'client_name' => $data['client_name'],
+            'client_email' => $data['client_email'] ?? null,
+            'bank' => $data['bank'] ?? null,
+            'reference' => $data['reference'] ?? null,
+            'operation' => $data['operation'] ?? null,
+            'payable_type' => $data['payable_type'],
+            'payable_id' => $data['payable_id'],
+            'process_type' => $data['process_type'],
+            'process_id' => $data['process_id'],
+            'payment_id' => null, // Se llena cuando se confirma el pago del banco
             'is_paid' => false,
             'is_sent' => false,
         ]);
+    }
+
+    /**
+     * Generar número de recibo único para cartera
+     */
+    public static function generateReceiptNumber(string $prefix = 'OBL'): string
+    {
+        $date = now()->format('Ymd');
+        $lastReceipt = static::where('receipt', 'like', "{$prefix}{$date}%")
+            ->orderBy('receipt', 'desc')
+            ->first();
+
+        if ($lastReceipt) {
+            $lastNumber = (int) substr($lastReceipt->receipt, -4);
+            $newNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+        } else {
+            $newNumber = '0001';
+        }
+
+        return "{$prefix}{$date}{$newNumber}";
     }
 
     /**
