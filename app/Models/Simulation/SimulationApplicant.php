@@ -24,7 +24,7 @@ class SimulationApplicant extends Model
         'phone_other',
         'exam_simulation_id',
         'photo_path',
-        'classroom_id',
+        'classroom',
     ];
 
     /**
