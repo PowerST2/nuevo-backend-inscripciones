@@ -21,16 +21,21 @@ trait ExamSimulationTrait
     }
 
     /**
-     * Obtener el simulacro activo actual
+     * Obtener el simulacro marcado como activo.
+     * Por defecto valida que la fecha actual esté dentro del rango; se puede desactivar con $mustBeInDateRange=false.
      */
-    public function getActiveSimulation(): ?ExamSimulation
+    public function getActiveSimulation(bool $mustBeInDateRange = true): ?ExamSimulation
     {
-        $today = Carbon::today()->toDateString();
-        
-        return ExamSimulation::where('active', true)
-            ->where('exam_date_start', '<=', $today)
-            ->where('exam_date_end', '>=', $today)
-            ->first();
+        $query = ExamSimulation::where('active', true);
+
+        if ($mustBeInDateRange) {
+            $today = Carbon::today()->toDateString();
+
+            $query->where('exam_date_start', '<=', $today)
+                ->where('exam_date_end', '>=', $today);
+        }
+
+        return $query->first();
     }
 
     /**
