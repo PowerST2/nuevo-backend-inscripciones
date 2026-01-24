@@ -74,6 +74,7 @@ trait SimulationApplicantTrait
             'exam_is_virtual' => $applicant->examSimulation->is_virtual,
             'requires_photo' => $applicant->requiresPhoto(),
             'has_photo' => $applicant->hasPhoto(),
+            'classroom_assignment' => $applicant->classroom,
             'process' => $applicant->simulationProcess ? [
                 'pre_registration' => $applicant->simulationProcess->pre_registration_at,
                 'payment' => $applicant->simulationProcess->payment_at,
@@ -122,6 +123,14 @@ trait SimulationApplicantTrait
         $today = Carbon::today()->toDateString();
 
         return ExamSimulation::where('active', true)
+            ->first();
+    }
+
+    public function getActiveExamSimulationInsert(): ?ExamSimulation
+    {
+        $today = Carbon::today()->toDateString();
+
+        return ExamSimulation::where('active', true)
             ->where('exam_date_start', '<=', $today)
             ->where('exam_date_end', '>=', $today)
             ->first();
@@ -133,7 +142,7 @@ trait SimulationApplicantTrait
     public function insertApplicant(array $data): array
     {
         // Obtener simulacro activo
-        $activeSimulation = $this->getActiveExamSimulation();
+        $activeSimulation = $this->getActiveExamSimulationInsert();
 
         if (!$activeSimulation) {
             return [
