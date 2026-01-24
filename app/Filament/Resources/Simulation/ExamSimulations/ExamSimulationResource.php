@@ -65,10 +65,10 @@ class ExamSimulationResource extends Resource
                     ->required()
                     ->helperText('Seleccione el tarifario que se cobrará por este simulacro'),
                 DatePicker::make('exam_date_start')
-                    ->label('Fecha inicio')
+                    ->label('Fecha inicio de inscripciones')
                     ->required(),
                 DatePicker::make('exam_date_end')
-                    ->label('Fecha fin')
+                    ->label('Fecha fin de inscripciones')
                     ->required(),
                 DatePicker::make('exam_date')
                     ->label('Fecha del examen')

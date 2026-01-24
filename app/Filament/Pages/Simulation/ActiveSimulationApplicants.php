@@ -82,8 +82,6 @@ class ActiveSimulationApplicants extends Page implements HasTable
         $today = Carbon::today()->toDateString();
 
         return ExamSimulation::where('active', true)
-            ->where('exam_date_start', '<=', $today)
-            ->where('exam_date_end', '>=', $today)
             ->first();
     }
 
