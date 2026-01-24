@@ -25,6 +25,12 @@ class SimulationApplicant extends Model
         'exam_simulation_id',
         'photo_path',
         'classroom_id',
+        'tariff_id',
+        'is_vocational',
+    ];
+
+    protected $casts = [
+        'is_vocational' => 'boolean',
     ];
 
     /**
@@ -33,6 +39,14 @@ class SimulationApplicant extends Model
     public function examSimulation()
     {
         return $this->belongsTo(ExamSimulation::class);
+    }
+
+    /**
+     * Relación con la tarifa asignada al postulante
+     */
+    public function tariff()
+    {
+        return $this->belongsTo(\App\Models\Tariff::class);
     }
 
     /**

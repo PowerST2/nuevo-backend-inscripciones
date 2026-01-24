@@ -70,8 +70,16 @@ trait SimulationApplicantTrait
             'phone_other' => $applicant->phone_other,
             'photo_path' => $applicant->photo_path,
             'photo_url' => $applicant->photo_url,
+            'is_vocational' => $applicant->is_vocational,
             'exam_description' => $applicant->examSimulation->description,
             'exam_is_virtual' => $applicant->examSimulation->is_virtual,
+            'exam_is_vocational' => $applicant->examSimulation->is_vocational,
+            'tariff' => $applicant->tariff ? [
+                'id' => $applicant->tariff->id,
+                'code' => $applicant->tariff->code,
+                'description' => $applicant->tariff->description,
+                'amount' => $applicant->tariff->amount,
+            ] : null,
             'requires_photo' => $applicant->requiresPhoto(),
             'has_photo' => $applicant->hasPhoto(),
             'process' => $applicant->simulationProcess ? [
@@ -169,6 +177,8 @@ trait SimulationApplicantTrait
             'phone_mobile' => $data['phone_mobile'] ?? null,
             'phone_other' => $data['phone_other'] ?? null,
             'exam_simulation_id' => $activeSimulation->id,
+            'is_vocational' => $data['is_vocational'] ?? false,
+            'tariff_id' => $data['tariff_id'],
         ]);
 
         return [

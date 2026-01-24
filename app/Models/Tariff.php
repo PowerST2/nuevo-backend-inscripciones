@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Simulation\ExamSimulation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -28,14 +27,6 @@ class Tariff extends Model
         'sort_order' => 'integer',
         'is_admission' => 'boolean',
     ];
-
-    /**
-     * Relación con simulacros de examen
-     */
-    public function examSimulations(): HasMany
-    {
-        return $this->hasMany(ExamSimulation::class);
-    }
 
     /**
      * Relación con pagos

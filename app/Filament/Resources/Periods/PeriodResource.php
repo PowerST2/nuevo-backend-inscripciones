@@ -36,8 +36,6 @@ class PeriodResource extends Resource
     {
         return $schema
             ->components([
-                TextInput::make('code')
-                    ->required(),
                 TextInput::make('name')
                     ->required(),
                 Toggle::make('active')
@@ -50,8 +48,6 @@ class PeriodResource extends Resource
         return $table
             ->recordTitleAttribute('name')
             ->columns([
-                TextColumn::make('code')
-                    ->searchable(),
                 TextColumn::make('name')
                     ->searchable(),
                 IconColumn::make('active')

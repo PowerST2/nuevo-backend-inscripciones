@@ -128,7 +128,7 @@ class SimulationApplicantController extends Controller
     /**
      * Insertar nuevo aplicante al simulacro activo (SIN FOTO)
      * POST /api/simulation-applicants
-     * Body JSON: { dni, last_name_father, last_name_mother, first_names, email, phone_mobile, phone_other? }
+     * Body JSON: { dni, last_name_father, last_name_mother, first_names, email, phone_mobile, phone_other?, is_vocational }
      */
     public function store(Request $request)
     {
@@ -141,6 +141,9 @@ class SimulationApplicantController extends Controller
             ], Response::HTTP_BAD_REQUEST);
         }
 
+        // Si el examen es vocacional, is_vocational es requerido; de lo contrario es opcional y se fuerza a false
+        $isVocationalRule = $activeSimulation->is_vocational ? 'required|boolean' : 'nullable|boolean';
+
         $validated = $request->validate([
             'dni' => 'required|string|size:8',
             'last_name_father' => 'required|string|max:50',
@@ -149,7 +152,22 @@ class SimulationApplicantController extends Controller
             'email' => 'required|email|max:150',
             'phone_mobile' => 'required|string|max:15',
             'phone_other' => 'nullable|string|max:15',
+            'is_vocational' => $isVocationalRule,
         ]);
+
+        $isVocational = $activeSimulation->is_vocational ? (bool) ($validated['is_vocational'] ?? false) : false;
+        $selectedTariff = $activeSimulation->getTariffForApplicant($isVocational);
+
+        if (!$selectedTariff) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se encontró una tarifa disponible para este simulacro',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Forzar valores consistentes
+        $validated['is_vocational'] = $isVocational;
+        $validated['tariff_id'] = $selectedTariff->id;
 
         $result = $this->insertApplicant($validated);
 

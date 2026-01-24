@@ -34,14 +34,14 @@ class SimulationApplicantObserver
      */
     private function createPaymentObligation(SimulationApplicant $applicant): void
     {
-        // Obtener el simulacro con su tarifa
-        $examSimulation = $applicant->examSimulation()->with('tariff')->first();
-        
-        if (!$examSimulation || !$examSimulation->tariff) {
+        // Cargar relaciones necesarias: simulacro y tarifa asignada al postulante
+        $applicant->loadMissing('examSimulation', 'tariff');
+        $examSimulation = $applicant->examSimulation;
+        $tariff = $applicant->tariff;
+
+        if (!$examSimulation || !$tariff) {
             return; // No crear obligación si no hay tarifa configurada
         }
-
-        $tariff = $examSimulation->tariff;
 
         // Generar número de recibo para la obligación
         $receipt = PaymentPortfolio::generateReceiptNumber('SIM');
