@@ -27,8 +27,21 @@
         <ul style="margin: 5px 0; padding-left: 20px;">
             <li>Pre-inscripción: {{ $applicant->simulationProcess->pre_registration_at ? $applicant->simulationProcess->pre_registration_at->format('d/m/Y H:i') : 'Pendiente' }}</li>
             <li>Pago: {{ $applicant->simulationProcess->payment_at ? $applicant->simulationProcess->payment_at->format('d/m/Y H:i') : 'Pendiente' }}</li>
+            <li>
+                Confirmación de Foto:
+                @php
+                    $photoStatus = $applicant->simulationProcess->photo_status;
+
+                    $statusMap = [
+                        'pending'  => 'Pendiente',
+                        'approved' => 'Aprobado',
+                        'rejected' => 'Rechazado',
+                    ];
+                @endphp
+
+                {{ $statusMap[$photoStatus] ?? 'Pendiente' }}
+            </li>            
             <li>Confirmación: {{ $applicant->simulationProcess->data_confirmation_at ? $applicant->simulationProcess->data_confirmation_at->format('d/m/Y H:i') : 'Pendiente' }}</li>
-            <li>Inscripción: {{ $applicant->simulationProcess->registration_at ? $applicant->simulationProcess->registration_at->format('d/m/Y H:i') : 'Pendiente' }}</li>
         </ul>
     @endif
 
