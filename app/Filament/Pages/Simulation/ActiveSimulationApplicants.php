@@ -88,6 +88,30 @@ class ActiveSimulationApplicants extends Page implements HasTable
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('confirm_all_data')
+                ->label('Confirmar Datos Masivos')
+                ->icon('heroicon-o-check-circle')
+                ->color('info')
+                ->requiresConfirmation()
+                ->modalHeading('Confirmar Datos Masivos')
+                ->modalDescription('Se confirmarán los datos de todos los postulantes que aún no estén confirmados. Esta acción establecerá la fecha y hora actual.')
+                ->modalSubmitActionLabel('Confirmar')
+                ->action(function () {
+                    $this->confirmAllData();
+                })
+                ->visible(fn () => $this->getActiveSimulation() !== null && $this->canGenerateCode()),
+            Action::make('generate_all_codes')
+                ->label('Generar Códigos Masivos')
+                ->icon('heroicon-o-key')
+                ->color('warning')
+                ->requiresConfirmation()
+                ->modalHeading('Generar Códigos Masivos')
+                ->modalDescription('Se generarán códigos para todos los postulantes confirmados que no tengan código. Esta acción no se puede deshacer.')
+                ->modalSubmitActionLabel('Generar')
+                ->action(function () {
+                    $this->generateAllCodes();
+                })
+                ->visible(fn () => $this->getActiveSimulation() !== null && $this->canGenerateCode()),
             Action::make('export')
                 ->label('Exportar Excel')
                 ->icon('heroicon-o-arrow-down-tray')
@@ -97,6 +121,105 @@ class ActiveSimulationApplicants extends Page implements HasTable
                 })
                 ->visible(fn () => $this->getActiveSimulation() !== null),
         ];
+    }
+
+    /**
+     * Confirmar datos masivos solo para postulantes que ya pagaron (payment_at no sea null)
+     */
+    public function confirmAllData(): void
+    {
+        $activeSimulation = $this->getActiveSimulation();
+
+        if (!$activeSimulation) {
+            Notification::make()
+                ->title('Error')
+                ->body('No hay simulacro activo.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        // Obtener postulantes que pagaron pero aún no tienen data_confirmation_at
+        $applicants = SimulationApplicant::where('exam_simulation_id', $activeSimulation->id)
+            ->whereHas('simulationProcess', fn ($q) => $q->whereNotNull('payment_at')->whereNull('data_confirmation_at'))
+            ->get();
+
+        if ($applicants->isEmpty()) {
+            Notification::make()
+                ->title('Sin cambios')
+                ->body('No hay postulantes pagados sin confirmar.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $count = 0;
+        $now = now();
+
+        foreach ($applicants as $applicant) {
+            if ($applicant->simulationProcess && is_null($applicant->simulationProcess->data_confirmation_at)) {
+                $applicant->simulationProcess->update([
+                    'data_confirmation_at' => $now,
+                ]);
+                $count++;
+            }
+        }
+
+        Notification::make()
+            ->title('Datos confirmados')
+            ->body("Se confirmaron {$count} postulantes a las " . $now->format('d/m/Y H:i:s') . '.')
+            ->success()
+            ->send();
+    }
+
+    /**
+     * Generar códigos de forma masiva para todos los postulantes confirmados sin código
+     */
+    public function generateAllCodes(): void
+    {
+        $activeSimulation = $this->getActiveSimulation();
+
+        if (!$activeSimulation) {
+            Notification::make()
+                ->title('Error')
+                ->body('No hay simulacro activo.')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        // Obtener todos los postulantes confirmados sin código
+        $applicants = SimulationApplicant::where('exam_simulation_id', $activeSimulation->id)
+            ->whereHas('simulationProcess', fn ($q) => $q->whereNotNull('data_confirmation_at'))
+            ->where(function ($q) {
+                $q->whereNull('code')->orWhere('code', '');
+            })
+            ->get();
+
+        if ($applicants->isEmpty()) {
+            Notification::make()
+                ->title('Sin cambios')
+                ->body('No hay postulantes para generar códigos.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        $count = 0;
+        foreach ($applicants as $applicant) {
+            if (empty($applicant->code)) {
+                $sequence = $applicant->getKey();
+                $applicant->code = SimulationApplicant::generateRegistrationCode((int) $sequence);
+                $applicant->save();
+                $count++;
+            }
+        }
+
+        Notification::make()
+            ->title('Códigos generados')
+            ->body("Se generaron {$count} códigos de registro.")
+            ->success()
+            ->send();
     }
 
     public function exportToExcel()
