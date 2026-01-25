@@ -12,13 +12,13 @@ class ExamSimulationController extends Controller
     use ExamSimulationTrait;
 
     /**
-     * Obtener estado del simulacro (si hay uno activo o no)
-     * Valida: active=true AND fecha actual entre exam_date_start y exam_date_end
+     * Obtener estado del simulacro (si hay uno activo o no) y si las inscripciones están abiertas.
      */
     public function index()
     {
-        $simulation = $this->getActiveSimulation();
+        $simulation = $this->getActiveSimulation(false); // Traer el simulacro activo sin validar fechas
         $isActive = $simulation !== null;
+        $isInscriptionOpen = $isActive && $simulation->is_within_range; // Inscripción abierta solo si está en rango
 
         // Si está activo, enviar datos
         if ($isActive) {
@@ -35,7 +35,8 @@ class ExamSimulationController extends Controller
             return response()->json([
                 'data' => [
                     'status' => 'success',
-                    'is_active' => true,
+                    'is_active' => $isActive,
+                    'is_inscription_open' => $isInscriptionOpen,
                     'description' => $simulation->description,
                     'exam_date_start' => $simulation->exam_date_start->format('d/m/Y'),
                     'exam_date_end' => $simulation->exam_date_end->format('d/m/Y'),
@@ -52,6 +53,7 @@ class ExamSimulationController extends Controller
             'data' => [
                 'status' => 'success',
                 'is_active' => false,
+                'is_inscription_open' => false,
             ]
         ], Response::HTTP_OK);
     }

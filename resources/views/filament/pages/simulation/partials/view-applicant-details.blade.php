@@ -16,6 +16,7 @@
                 <p><strong>Email:</strong> {{ $applicant->email }}</p>
                 <p><strong>Teléfono:</strong> {{ $applicant->phone_mobile ?? 'No registrado' }}</p>
                 <p><strong>Foto:</strong> {{ $applicant->hasPhoto() ? 'Cargada' : ($applicant->requiresPhoto() ? 'Requerida - No cargada' : 'No requerida') }}</p>
+                <p><strong>Aula Asignada:</strong> {{ $applicant->classroom ?? 'No asignada' }}</p>
             </td>
         </tr>
     </table>

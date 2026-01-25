@@ -24,15 +24,14 @@ class SimulationApplicant extends Model
         'phone_other',
         'exam_simulation_id',
         'photo_path',
-        'classroom_id',
+        'classroom',
         'tariff_id',
         'is_vocational',
     ];
-
+    
     protected $casts = [
         'is_vocational' => 'boolean',
     ];
-
     /**
      * Relación con el simulacro de examen
      */

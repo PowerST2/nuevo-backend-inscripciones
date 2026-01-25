@@ -105,7 +105,7 @@ class SimulationApplicantController extends Controller
 
         if (!$dni || !$email) {
             return response()->json([
-                'status' => 'sucess',
+                'status' => 'success',
                 'message' => 'Los campos dni y email son obligatorios',
             ], Response::HTTP_OK);
         }
@@ -114,7 +114,7 @@ class SimulationApplicantController extends Controller
 
         if (!$applicant) {
             return response()->json([
-                'status' => 'sucess',
+                'status' => 'success',
                 'message' => 'No se encontró un aplicante con los datos proporcionados',
             ], Response::HTTP_OK);
         }
