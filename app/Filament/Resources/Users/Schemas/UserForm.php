@@ -23,9 +23,11 @@ class UserForm
                 DateTimePicker::make('email_verified_at')
                     ->label(__('filament.labels.email') . ' ' . __('filament.labels.updated_at')),
                 TextInput::make('password')
-                    ->label(__('filament.labels.password'))
                     ->password()
-                    ->required(),
+                    ->label('Contraseña')
+                    ->dehydrateStateUsing(fn ($state) => filled($state) ? Hash::make($state) : null)
+                    ->dehydrated(fn ($state) => filled($state))
+                    ->required(fn (string $context) => $context === 'create'),
                 Select::make('roles')
                     ->relationship('roles', 'name')
                     ->multiple()

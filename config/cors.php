@@ -19,11 +19,13 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
+   /* 'allowed_origins' => [
 	    'http://localhost:3000',
 	    'https://frontend-simulacro-diad.vercel.app',
 	    'https://simulacro.admision.uni.edu.pe'
-    ],
+    ],*/
+
+    'allowed_origins' => ['*'],
 
     'allowed_origins_patterns' => [],
 

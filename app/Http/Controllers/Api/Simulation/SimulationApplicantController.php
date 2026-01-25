@@ -128,7 +128,7 @@ class SimulationApplicantController extends Controller
     /**
      * Insertar nuevo aplicante al simulacro activo (SIN FOTO)
      * POST /api/simulation-applicants
-     * Body JSON: { dni, last_name_father, last_name_mother, first_names, email, phone_mobile, phone_other?, is_vocational }
+     * Body JSON: { dni, last_name_father, last_name_mother, first_names, email, phone_mobile, phone_other?, include_vocational }
      */
     public function store(Request $request)
     {
@@ -141,21 +141,30 @@ class SimulationApplicantController extends Controller
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        // Si el examen es vocacional, is_vocational es requerido; de lo contrario es opcional y se fuerza a false
-        $isVocationalRule = $activeSimulation->is_vocational ? 'required|boolean' : 'nullable|boolean';
+        // Regla para el examen vocacional
+        $isVocationalRule = $activeSimulation->include_vocational ? 'required|boolean' : 'nullable|boolean';
 
+        // Validación actualizada
         $validated = $request->validate([
-            'dni' => 'required|string|size:8',
-            'last_name_father' => 'required|string|max:50',
-            'last_name_mother' => 'required|string|max:50',
-            'first_names' => 'required|string|max:100',
-            'email' => 'required|email|max:150',
-            'phone_mobile' => 'required|string|max:15',
-            'phone_other' => 'nullable|string|max:15',
-            'is_vocational' => $isVocationalRule,
+            'dni'                => 'required|string|size:8',
+            'last_name_father'   => 'required|string|max:50',
+            'last_name_mother'   => 'required|string|max:50',
+            'first_names'        => 'required|string|max:100',
+            'email'              => 'required|email|max:150',
+            'phone_mobile'       => 'required|string|max:15',
+            'phone_other'        => 'nullable|string|max:15',
+            'include_vocational' => $isVocationalRule,
+            
+            // --- NUEVOS CAMPOS ---
+            // Se validan como nullable porque así están en tu migración.
+            // exists:tabla,columna asegura que el ID enviado sea real.
+            'genders_id'         => 'required|integer|exists:genders,id',
+            'ubigeo_id'          => 'required|integer|exists:ubigeos,id',
+            'birth_date'         => 'required|date|before:today', // before:today evita fechas futuras
         ]);
 
-        $isVocational = $activeSimulation->is_vocational ? (bool) ($validated['is_vocational'] ?? false) : false;
+        // Lógica de tarifa (sin cambios)
+        $isVocational = $activeSimulation->include_vocational ? (bool) ($validated['include_vocational'] ?? false) : false;
         $selectedTariff = $activeSimulation->getTariffForApplicant($isVocational);
 
         if (!$selectedTariff) {
@@ -166,9 +175,10 @@ class SimulationApplicantController extends Controller
         }
 
         // Forzar valores consistentes
-        $validated['is_vocational'] = $isVocational;
+        $validated['include_vocational'] = $isVocational;
         $validated['tariff_id'] = $selectedTariff->id;
 
+        // Insertar postulante (asegúrate que este método use create() con los datos validados)
         $result = $this->insertApplicant($validated);
 
         if (!$result['success']) {

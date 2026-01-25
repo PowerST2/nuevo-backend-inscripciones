@@ -23,7 +23,7 @@ class ExamSimulation extends Model
         'exam_date',
         'active',
         'is_virtual',
-        'is_vocational',
+        'include_vocational',
     ];
 
     protected $casts = [
@@ -32,7 +32,7 @@ class ExamSimulation extends Model
         'exam_date' => 'date',
         'active' => 'boolean',
         'is_virtual' => 'boolean',
-        'is_vocational' => 'boolean',
+        'include_vocational' => 'boolean',
     ];
 
     public function applicants(): HasMany
@@ -53,16 +53,16 @@ class ExamSimulation extends Model
         
         $codes = [];
         
-        if (!$this->is_virtual && !$this->is_vocational) {
+        if (!$this->is_virtual && !$this->include_vocational) {
             // Presencial sin vocacional
             $codes = ['520'];
-        } elseif (!$this->is_virtual && $this->is_vocational) {
+        } elseif (!$this->is_virtual && $this->include_vocational) {
             // Presencial vocacional: ofrece ambas opciones
             $codes = ['520', '521'];
-        } elseif ($this->is_virtual && !$this->is_vocational) {
+        } elseif ($this->is_virtual && !$this->include_vocational) {
             // Virtual sin vocacional
             $codes = ['523'];
-        } elseif ($this->is_virtual && $this->is_vocational) {
+        } elseif ($this->is_virtual && $this->include_vocational) {
             // Virtual vocacional: ofrece ambas opciones
             $codes = ['522', '523'];
         }
@@ -79,7 +79,7 @@ class ExamSimulation extends Model
     public function getTariffForApplicant(bool $wantsVocational)
     {
         // Si el examen no es vocacional, forzar a false
-        $wantsVocational = $this->is_vocational ? $wantsVocational : false;
+        $wantsVocational = $this->include_vocational ? $wantsVocational : false;
 
         if (!$this->is_virtual && !$wantsVocational) {
             $code = '520'; // Presencial sin vocacional

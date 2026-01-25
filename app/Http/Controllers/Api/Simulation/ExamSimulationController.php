@@ -42,7 +42,7 @@ class ExamSimulationController extends Controller
                     'exam_date_end' => $simulation->exam_date_end->format('d/m/Y'),
                     'exam_date' => $simulation->exam_date?->format('d/m/Y'),
                     'is_virtual' => $simulation->is_virtual,
-                    'is_vocational' => $simulation->is_vocational,
+                    'include_vocational' => $simulation->include_vocational,
                     'available_tariffs' => $availableTariffs,
                 ]
             ], Response::HTTP_OK);

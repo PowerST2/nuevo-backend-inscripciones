@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Models\Simulation;
+use App\Models\Gender;
+use App\Models\Ubigeo;
 
 use App\Traits\GeneratesRegistrationCode;
 use Illuminate\Database\Eloquent\Model;
@@ -26,11 +28,14 @@ class SimulationApplicant extends Model
         'photo_path',
         'classroom',
         'tariff_id',
-        'is_vocational',
+        'include_vocational',
+        'genders_id',
+        'birth_date',
+        'ubigeo_id',
     ];
     
     protected $casts = [
-        'is_vocational' => 'boolean',
+        'include_vocational' => 'boolean',
     ];
     /**
      * Relación con el simulacro de examen
@@ -38,6 +43,14 @@ class SimulationApplicant extends Model
     public function examSimulation()
     {
         return $this->belongsTo(ExamSimulation::class);
+    }
+    public function gender()
+    {
+        return $this->belongsTo(Gender::class, 'genders_id');
+    }
+    public function ubigeo()
+    {
+        return $this->belongsTo(Ubigeo::class, 'ubigeo_id');
     }
 
     /**
@@ -47,6 +60,26 @@ class SimulationApplicant extends Model
     {
         return $this->belongsTo(\App\Models\Tariff::class);
     }
+        public function setLastNameFatherAttribute($value)
+    {
+        $this->attributes['last_name_father'] = mb_strtoupper($value);
+    }
+
+    public function setLastNameMotherAttribute($value)
+    {
+        $this->attributes['last_name_mother'] = mb_strtoupper($value);
+    }
+
+    public function setFirstNamesAttribute($value)
+    {
+        $this->attributes['first_names'] = mb_strtoupper($value);
+    }
+
+    public function setEmailAttribute($value)
+    {
+        $this->attributes['email'] = mb_strtoupper($value);
+    }
+
 
     /**
      * Relación con el proceso de simulacro

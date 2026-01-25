@@ -9,13 +9,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('simulation_applicants', function (Blueprint $table) {
-            $table->boolean('is_vocational')->default(false)->comment('true = Vocacional, false = Académico')->after('is_virtual');});
+            $table->boolean('include_vocational')->default(false)->comment('true = Vocacional, false = Académico')->after('is_virtual');});
     }
 
     public function down(): void
     {
         Schema::table('simulation_applicants', function (Blueprint $table) {
-            $table->dropColumn('is_vocational');
+            $table->dropColumn('include_vocational');
         });
     }
 };

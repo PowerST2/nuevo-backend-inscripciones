@@ -64,7 +64,7 @@ class ExamSimulationResource extends Resource
                     ->label('¿Es Virtual?')
                     ->helperText('Activado = Virtual (sin foto), Desactivado = Presencial (requiere foto)')
                     ->default(false),
-                Toggle::make('is_vocational')
+                Toggle::make('include_vocational')
                     ->label('¿Incluye Vocacional?')
                     ->helperText('Si se activa, el postulante podrá elegir si desea con vocacional o sin vocacional al registrarse')
                     ->default(false),
@@ -106,14 +106,14 @@ class ExamSimulationResource extends Resource
                     ->trueColor('info')
                     ->falseColor('warning')
                     ->tooltip(fn ($record) => $record->is_virtual ? 'Virtual' : 'Presencial'),
-                IconColumn::make('is_vocational')
+                IconColumn::make('include_vocational')
                     ->label('Vocacional')
                     ->boolean()
                     ->trueIcon('heroicon-o-check-circle')
                     ->falseIcon('heroicon-o-x-circle')
                     ->trueColor('success')
                     ->falseColor('gray')
-                    ->tooltip(fn ($record) => $record->is_vocational ? 'Incluye vocacional' : 'Sin vocacional'),
+                    ->tooltip(fn ($record) => $record->include_vocational ? 'Incluye vocacional' : 'Sin vocacional'),
                 TextColumn::make('created_at')
                     ->label('Creado')
                     ->dateTime()
