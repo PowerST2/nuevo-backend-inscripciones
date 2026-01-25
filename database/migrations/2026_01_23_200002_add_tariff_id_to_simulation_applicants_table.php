@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::table('simulation_applicants', function (Blueprint $table) {
             $table->foreignId('tariff_id')
                 ->nullable()
-                ->after('classroom_id')
+                ->after('classroom')
                 ->constrained('tariffs')
                 ->nullOnDelete();
         });
