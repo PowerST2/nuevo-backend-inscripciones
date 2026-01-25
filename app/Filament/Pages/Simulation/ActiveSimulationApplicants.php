@@ -21,6 +21,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Facades\Excel;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\TextInput;
 use UnitEnum;
 
 class ActiveSimulationApplicants extends Page implements HasTable
@@ -437,6 +438,46 @@ class ActiveSimulationApplicants extends Page implements HasTable
                         $record->simulationProcess?->data_confirmation_at !== null && 
                         empty($record->code)
                     ),
+                Action::make('edit')
+                    ->label('')
+                    ->icon('heroicon-o-pencil')
+                    ->color('warning')
+                    ->tooltip('Editar datos')
+                    ->modalHeading(fn(SimulationApplicant $record): string => "Editar datos de {$record->full_name}")
+                    ->form([
+                        TextInput::make('first_names')
+                            ->label('Nombres')
+                            ->required(),
+                        TextInput::make('last_name_father')
+                            ->label('Apellido Paterno')
+                            ->required(),
+                        TextInput::make('last_name_mother')
+                            ->label('Apellido Materno')
+                            ->required(),
+                        TextInput::make('dni')
+                            ->label('DNI')
+                            ->required(),
+                        TextInput::make('email')
+                            ->label('Correo Electrónico')
+                            ->email()
+                            ->required(),
+                        TextInput::make('phone_mobile')
+                            ->label('Celular')
+                            ->tel(),
+                        TextInput::make('phone_other')
+                            ->label('Teléfono Alternativo')
+                            ->tel(),
+                    ])
+                    ->fillForm(fn(SimulationApplicant $record) => $record->attributesToArray())
+                    ->action(function (SimulationApplicant $record, array $data): void {
+                        $record->update($data);
+                        Notification::make()
+                            ->title('Datos actualizados')
+                            ->body("Los datos de {$record->full_name} se han actualizado correctamente.")
+                            ->success()
+                            ->send();
+                    })
+                    ->visible(fn(): bool => $this->canEditApplicants()),
                 Action::make('view_photo')
                     ->label('')
                     ->icon('heroicon-o-photo')
@@ -511,6 +552,27 @@ class ActiveSimulationApplicants extends Page implements HasTable
         }
 
         // Rol de sistemas puede generar códigos
+        if ($user->hasRole('sistemas')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    protected function canEditApplicants(): bool
+    {
+        $user = Filament::auth()?->user();
+
+        if (!$user) {
+            return false;
+        }
+
+        // Super admin siempre puede editar
+        if ($user->hasRole('super_admin')) {
+            return true;
+        }
+
+        // Rol de sistemas puede editar
         if ($user->hasRole('sistemas')) {
             return true;
         }
