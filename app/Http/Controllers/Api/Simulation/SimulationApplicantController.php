@@ -262,7 +262,7 @@ class SimulationApplicantController extends Controller
 
     /**
      * Actualizar datos del aplicante por UUID (sin foto)
-     * PUT /api/simulation-applicants/{uuid}
+     * POST /api/simulation-applicants/{uuid}
      * Body JSON: { last_name_father?, last_name_mother?, first_names?, phone_mobile?, phone_other? }
      */
     public function updateByUuid(Request $request, string $uuid)
@@ -270,14 +270,19 @@ class SimulationApplicantController extends Controller
         $validated = $request->validate([
             'last_name_father' => 'sometimes|string|max:50',
             'last_name_mother' => 'sometimes|string|max:50',
+            'email' => 'sometimes|email|max:100',
             'first_names' => 'sometimes|string|max:100',
             'phone_mobile' => 'sometimes|nullable|string|max:20',
             'phone_other' => 'sometimes|nullable|string|max:20',
+            'genders_id' => 'sometimes|integer|exists:genders,id',
+            'birth_date' => 'sometimes|date|before:today',
+            'ubigeo_id' => 'sometimes|integer|exists:ubigeos,id',
+            
         ]);
 
         $result = $this->updateApplicantByUuid(
             $uuid,
-            $request->only(['last_name_father', 'last_name_mother', 'first_names', 'phone_mobile', 'phone_other'])
+            $request->only(['last_name_father', 'last_name_mother', 'first_names', 'phone_mobile', 'phone_other', 'genders_id', 'birth_date', 'ubigeo_id'])
         );
 
         return response()->json([
@@ -370,11 +375,14 @@ class SimulationApplicantController extends Controller
             'first_names' => 'sometimes|string|max:100',
             'phone_mobile' => 'sometimes|nullable|string|max:20',
             'phone_other' => 'sometimes|nullable|string|max:20',
+            'genders_id' => 'sometimes|integer|exists:genders,id',
+            'birth_date' => 'sometimes|date|before:today',
+            'ubigeo_id' => 'sometimes|integer|exists:ubigeos,id',
         ]);
 
         $result = $this->updateAndConfirmApplicantDataByUuid(
             $uuid,
-            $request->only(['last_name_father', 'last_name_mother', 'first_names', 'phone_mobile', 'phone_other'])
+            $request->only(['last_name_father', 'last_name_mother', 'first_names', 'phone_mobile', 'phone_other','genders_id', 'birth_date', 'ubigeo_id'])
         );
 
         return response()->json([
@@ -471,12 +479,15 @@ class SimulationApplicantController extends Controller
             'first_names' => 'sometimes|string|max:100',
             'phone_mobile' => 'sometimes|nullable|string|max:20',
             'phone_other' => 'sometimes|nullable|string|max:20',
+            'genders_id' => 'sometimes|integer|exists:genders,id',
+            'birth_date' => 'sometimes|date|before:today',
+            'ubigeo_id' => 'sometimes|integer|exists:ubigeos,id',
         ]);
 
         $result = $this->updateApplicant(
             $validated['dni'],
             $validated['email'],
-            $request->only(['last_name_father', 'last_name_mother', 'first_names', 'phone_mobile', 'phone_other'])
+            $request->only(['last_name_father', 'last_name_mother', 'first_names', 'phone_mobile', 'phone_other', 'genders_id', 'birth_date', 'ubigeo_id'])
         );
 
         return response()->json([
