@@ -75,12 +75,6 @@ class SimulationApplicant extends Model
         $this->attributes['first_names'] = mb_strtoupper($value);
     }
 
-    public function setEmailAttribute($value)
-    {
-        $this->attributes['email'] = mb_strtoupper($value);
-    }
-
-
     /**
      * Relación con el proceso de simulacro
      */

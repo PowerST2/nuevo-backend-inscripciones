@@ -80,7 +80,7 @@ trait SimulationApplicantTrait
                 'exam_include_vocational' => $applicant->examSimulation->include_vocational,
                 
                 'gender' => $applicant->gender?->name,
-                'gender_id' => $applicant->genders_id,
+                'genders_id' => $applicant->genders_id,
                 'birth_date' => $applicant->birth_date,
 
                 'ubigeo' => $ubigeo?->description, 
