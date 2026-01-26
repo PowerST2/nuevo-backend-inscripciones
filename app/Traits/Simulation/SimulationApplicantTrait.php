@@ -130,7 +130,7 @@ trait SimulationApplicantTrait
         }
 
         $applicant = SimulationApplicant::where('dni', $dni)
-            ->where('email', $email)
+            ->whereRaw('LOWER(email) = ?', [strtolower($email)])
             ->where('exam_simulation_id', $activeSimulation->id)
             ->with(['simulationProcess', 'examSimulation'])
             ->first();

@@ -30,7 +30,9 @@ class ExamSimulationController extends Controller
                     'description' => $tariff->description,
                     'amount' => $tariff->amount,
                 ];
-            });
+            })
+            ->sortBy('amount')  // Ordena por 'amount' ascendente
+            ->values();  // Reindexa el array
 
             return response()->json([
                 'data' => [

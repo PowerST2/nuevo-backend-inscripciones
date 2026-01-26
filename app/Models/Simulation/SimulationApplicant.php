@@ -60,7 +60,8 @@ class SimulationApplicant extends Model
     {
         return $this->belongsTo(\App\Models\Tariff::class);
     }
-        public function setLastNameFatherAttribute($value)
+    
+    public function setLastNameFatherAttribute($value)
     {
         $this->attributes['last_name_father'] = mb_strtoupper($value);
     }
