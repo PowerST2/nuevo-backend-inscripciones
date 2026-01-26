@@ -38,4 +38,5 @@ class ExamSimulationObserver
             ->where('active', true)
             ->update(['active' => false]);
     }
+
 }

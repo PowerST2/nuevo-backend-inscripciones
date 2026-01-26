@@ -48,22 +48,6 @@ class ExamSimulationResource extends Resource
                 Textarea::make('description')
                     ->label('Descripción')
                     ->columnSpanFull(),
-                Select::make('tariff_id')
-                    ->label('Tarifario')
-                    ->relationship('tariff', 'description')
-                    ->options(
-                        Tariff::active()
-                            ->forSimulation()
-                            ->ordered()
-                            ->get()
-                            ->mapWithKeys(fn ($tariff) => [
-                                $tariff->id => "{$tariff->code} - {$tariff->description} (S/ {$tariff->amount})"
-                            ])
-                    )
-                    ->searchable()
-                    ->preload()
-                    ->required()
-                    ->helperText('Seleccione el tarifario que se cobrará por este simulacro'),
                 DatePicker::make('exam_date_start')
                     ->label('Fecha inicio de inscripciones')
                     ->required(),
@@ -80,6 +64,10 @@ class ExamSimulationResource extends Resource
                     ->label('¿Es Virtual?')
                     ->helperText('Activado = Virtual (sin foto), Desactivado = Presencial (requiere foto)')
                     ->default(false),
+                Toggle::make('include_vocational')
+                    ->label('¿Incluye Vocacional?')
+                    ->helperText('Si se activa, el postulante podrá elegir si desea con vocacional o sin vocacional al registrarse')
+                    ->default(false),
             ]);
     }
 
@@ -95,13 +83,6 @@ class ExamSimulationResource extends Resource
                     ->label('Descripción')
                     ->limit(50)
                     ->searchable(),
-                TextColumn::make('tariff.code')
-                    ->label('Servicio')
-                    ->badge()
-                    ->searchable(),
-                TextColumn::make('tariff.amount')
-                    ->label('Monto')
-                    ->money('PEN'),
                 TextColumn::make('exam_date_start')
                     ->label('Fecha inicio')
                     ->date()
@@ -125,6 +106,14 @@ class ExamSimulationResource extends Resource
                     ->trueColor('info')
                     ->falseColor('warning')
                     ->tooltip(fn ($record) => $record->is_virtual ? 'Virtual' : 'Presencial'),
+                IconColumn::make('include_vocational')
+                    ->label('Vocacional')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('gray')
+                    ->tooltip(fn ($record) => $record->include_vocational ? 'Incluye vocacional' : 'Sin vocacional'),
                 TextColumn::make('created_at')
                     ->label('Creado')
                     ->dateTime()

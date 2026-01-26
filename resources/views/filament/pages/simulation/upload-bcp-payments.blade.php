@@ -16,16 +16,6 @@
                         <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Descripción</span>
                         <p class="font-semibold text-gray-900 dark:text-white">{{ $simulation->description }}</p>
                     </div>
-                    <div>
-                        <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Tarifa</span>
-                        <p class="font-semibold text-gray-900 dark:text-white">
-                            @if($simulation->tariff)
-                                S/ {{ number_format($simulation->tariff->amount, 2) }}
-                            @else
-                                <span class="text-danger-600">Sin tarifa</span>
-                            @endif
-                        </p>
-                    </div>
                 </div>
             </div>
         </x-filament::section>

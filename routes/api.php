@@ -33,3 +33,9 @@ require __DIR__.'/admissions/examsimulation.php';
 
 // Simulation Applicant routes
 require __DIR__.'/admissions/simulationapplicant.php';
+
+// Gender routes
+require __DIR__.'/admissions/gender.php';
+
+// Ubigeo routes
+require __DIR__.'/admissions/ubigeo.php';

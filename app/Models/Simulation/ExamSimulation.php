@@ -22,8 +22,8 @@ class ExamSimulation extends Model
         'exam_date_end',
         'exam_date',
         'active',
-        'tariff_id',
         'is_virtual',
+        'include_vocational',
     ];
 
     protected $casts = [
@@ -32,6 +32,7 @@ class ExamSimulation extends Model
         'exam_date' => 'date',
         'active' => 'boolean',
         'is_virtual' => 'boolean',
+        'include_vocational' => 'boolean',
     ];
 
     public function applicants(): HasMany
@@ -40,11 +41,57 @@ class ExamSimulation extends Model
     }
 
     /**
-     * Relación con la tarifa/servicio
+     * Obtener las tarifas disponibles para este examen según su modalidad y vocacional
      */
-    public function tariff(): BelongsTo
+    public function getAvailableTariffsAttribute()
     {
-        return $this->belongsTo(Tariff::class);
+        // Códigos de tarifas según modalidad y vocacional:
+        // 520: Presencial sin vocacional
+        // 521: Presencial con vocacional
+        // 522: Virtual con vocacional
+        // 523: Virtual sin vocacional
+        
+        $codes = [];
+        
+        if (!$this->is_virtual && !$this->include_vocational) {
+            // Presencial sin vocacional
+            $codes = ['520'];
+        } elseif (!$this->is_virtual && $this->include_vocational) {
+            // Presencial vocacional: ofrece ambas opciones
+            $codes = ['520', '521'];
+        } elseif ($this->is_virtual && !$this->include_vocational) {
+            // Virtual sin vocacional
+            $codes = ['523'];
+        } elseif ($this->is_virtual && $this->include_vocational) {
+            // Virtual vocacional: ofrece ambas opciones
+            $codes = ['522', '523'];
+        }
+        
+        return Tariff::whereIn('code', $codes)
+            ->where('active', true)
+            ->where('is_admission', false)
+            ->get();
+    }
+
+    /**
+     * Obtener la tarifa que corresponde al postulante según su elección de vocacional
+     */
+    public function getTariffForApplicant(bool $wantsVocational)
+    {
+        // Si el examen no es vocacional, forzar a false
+        $wantsVocational = $this->include_vocational ? $wantsVocational : false;
+
+        if (!$this->is_virtual && !$wantsVocational) {
+            $code = '520'; // Presencial sin vocacional
+        } elseif (!$this->is_virtual && $wantsVocational) {
+            $code = '521'; // Presencial con vocacional
+        } elseif ($this->is_virtual && $wantsVocational) {
+            $code = '522'; // Virtual con vocacional
+        } else {
+            $code = '523'; // Virtual sin vocacional
+        }
+
+        return $this->available_tariffs->firstWhere('code', $code);
     }
 
     /**

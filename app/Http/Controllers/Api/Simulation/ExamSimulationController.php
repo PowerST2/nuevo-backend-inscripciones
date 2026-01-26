@@ -22,6 +22,16 @@ class ExamSimulationController extends Controller
 
         // Si está activo, enviar datos
         if ($isActive) {
+            // Obtener tarifas disponibles para este examen
+            $availableTariffs = $simulation->available_tariffs->map(function ($tariff) {
+                return [
+                    'id' => $tariff->id,
+                    'code' => $tariff->code,
+                    'description' => $tariff->description,
+                    'amount' => $tariff->amount,
+                ];
+            });
+
             return response()->json([
                 'data' => [
                     'status' => 'success',
@@ -32,6 +42,8 @@ class ExamSimulationController extends Controller
                     'exam_date_end' => $simulation->exam_date_end->format('d/m/Y'),
                     'exam_date' => $simulation->exam_date?->format('d/m/Y'),
                     'is_virtual' => $simulation->is_virtual,
+                    'include_vocational' => $simulation->include_vocational,
+                    'available_tariffs' => $availableTariffs,
                 ]
             ], Response::HTTP_OK);
         }

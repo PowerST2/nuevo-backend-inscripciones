@@ -56,37 +56,66 @@ trait SimulationApplicantTrait
      * Formatear datos del aplicante para respuesta API
      */
     protected function formatApplicantData(SimulationApplicant $applicant): array
-    {
-        return [
-            'id' => $applicant->id,
-            'uuid' => $applicant->uuid,
-            'code' => $applicant->code,
-            'dni' => $applicant->dni,
-            'last_name_father' => $applicant->last_name_father,
-            'last_name_mother' => $applicant->last_name_mother,
-            'first_names' => $applicant->first_names,
-            'email' => $applicant->email,
-            'phone_mobile' => $applicant->phone_mobile,
-            'phone_other' => $applicant->phone_other,
-            'photo_path' => $applicant->photo_path,
-            'photo_url' => $applicant->photo_url,
-            'exam_description' => $applicant->examSimulation->description,
-            'exam_is_virtual' => $applicant->examSimulation->is_virtual,
-            'requires_photo' => $applicant->requiresPhoto(),
-            'has_photo' => $applicant->hasPhoto(),
-            'classroom_assignment' => $applicant->classroom,
-            'process' => $applicant->simulationProcess ? [
-                'pre_registration' => $applicant->simulationProcess->pre_registration_at,
-                'payment' => $applicant->simulationProcess->payment_at,
-                'photo' => $applicant->simulationProcess->photo_at,
-                'photo_status' => $applicant->simulationProcess->photo_status,
-                'photo_rejected_reason' => $applicant->simulationProcess->photo_rejected_reason,
-                'photo_reviewed_at' => $applicant->simulationProcess->photo_reviewed_at,
-                'data_confirmation' => $applicant->simulationProcess->data_confirmation_at,
-                'registration' => $applicant->simulationProcess->registration_at,
-            ] : null,
-        ];
-    }
+        {
+            // Aseguramos cargar la relación para evitar errores
+            // (Esto ya debería estar cargado en el searchByUuid, pero por seguridad)
+            $ubigeo = $applicant->ubigeo;
+
+            return [
+                'id' => $applicant->id,
+                'uuid' => $applicant->uuid,
+                'code' => $applicant->code,
+                'dni' => $applicant->dni,
+                'last_name_father' => $applicant->last_name_father,
+                'last_name_mother' => $applicant->last_name_mother,
+                'first_names' => $applicant->first_names,
+                'email' => $applicant->email,
+                'phone_mobile' => $applicant->phone_mobile,
+                'phone_other' => $applicant->phone_other,
+                'photo_path' => $applicant->photo_path,
+                'photo_url' => $applicant->photo_url,
+                'include_vocational' => $applicant->include_vocational,
+                'exam_description' => $applicant->examSimulation->description,
+                'exam_is_virtual' => $applicant->examSimulation->is_virtual,
+                'exam_include_vocational' => $applicant->examSimulation->include_vocational,
+                
+                'gender' => $applicant->gender?->name,
+                'gender_id' => $applicant->genders_id,
+                'birth_date' => $applicant->birth_date,
+
+                'ubigeo' => $ubigeo?->description, 
+                'ubigeo_id' => $applicant->ubigeo_id, 
+                // Códigos calculados (CRUCIALES PARA EL EDITAR EN CASCADA)
+                // Si el ubigeo es "150101" (Lima), calculamos sus padres automáticamente:
+                'ubigeo_codes' => $ubigeo ? [
+                    // Toma los 2 primeros dígitos + '0000' => "150000" (Para el select Departamento)
+                    'department_code' => substr($ubigeo->code, 0, 2) . '0000', 
+                    // Toma los 4 primeros dígitos + '00' => "150100" (Para el select Provincia)
+                    'province_code'   => substr($ubigeo->code, 0, 4) . '00',   
+                ] : null,
+                // ---------------------------------
+
+                'tariff' => $applicant->tariff ? [
+                    'id' => $applicant->tariff->id,
+                    'code' => $applicant->tariff->code,
+                    'description' => $applicant->tariff->description,
+                    'amount' => $applicant->tariff->amount,
+                ] : null,
+                'requires_photo' => $applicant->requiresPhoto(),
+                'has_photo' => $applicant->hasPhoto(),
+                'classroom_assignment' => $applicant->classroom,
+                'process' => $applicant->simulationProcess ? [
+                    'pre_registration' => $applicant->simulationProcess->pre_registration_at,
+                    'payment' => $applicant->simulationProcess->payment_at,
+                    'photo' => $applicant->simulationProcess->photo_at,
+                    'photo_status' => $applicant->simulationProcess->photo_status,
+                    'photo_rejected_reason' => $applicant->simulationProcess->photo_rejected_reason,
+                    'photo_reviewed_at' => $applicant->simulationProcess->photo_reviewed_at,
+                    'data_confirmation' => $applicant->simulationProcess->data_confirmation_at,
+                    'registration' => $applicant->simulationProcess->registration_at,
+                ] : null,
+            ];
+        }
 
     /**
      * Buscar aplicante por DNI y email (solo del simulacro activo)
@@ -178,6 +207,11 @@ trait SimulationApplicantTrait
             'phone_mobile' => $data['phone_mobile'] ?? null,
             'phone_other' => $data['phone_other'] ?? null,
             'exam_simulation_id' => $activeSimulation->id,
+            'include_vocational' => $data['include_vocational'] ?? false,
+            'tariff_id' => $data['tariff_id'],
+            'genders_id' => $data['genders_id'] ?? null,
+            'birth_date' => $data['birth_date'] ?? null,
+            'ubigeo_id' => $data['ubigeo_id'] ?? null,
         ]);
 
         return [
@@ -218,6 +252,9 @@ trait SimulationApplicantTrait
             'first_names',
             'phone_mobile',
             'phone_other',
+            'genders_id',
+            'ubigeo_id',
+            'birth_date',
         ];
 
         $updateData = array_intersect_key($data, array_flip($allowedFields));
@@ -265,6 +302,9 @@ trait SimulationApplicantTrait
             'first_names',
             'phone_mobile',
             'phone_other',
+            'genders_id',
+            'ubigeo_id',
+            'birth_date',
         ];
 
         $updateData = array_intersect_key($data, array_flip($allowedFields));
@@ -487,6 +527,9 @@ trait SimulationApplicantTrait
             'first_names',
             'phone_mobile',
             'phone_other',
+            'genders_id',
+            'ubigeo_id',
+            'birth_date',
         ];
 
         $updateData = array_filter(
@@ -576,6 +619,9 @@ trait SimulationApplicantTrait
             'first_names',
             'phone_mobile',
             'phone_other',
+            'genders_id',
+            'ubigeo_id',
+            'birth_date',
         ];
 
         $updateData = array_filter(
@@ -900,3 +946,4 @@ trait SimulationApplicantTrait
         }
     }
 }
+ 

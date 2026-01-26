@@ -82,6 +82,12 @@ class SimulationApplicantResource extends Resource
                     ->relationship('classroom', 'code')
                     ->searchable()
                     ->preload(),
+                Select::make('tariff_id')
+                    ->label('Tarifa')
+                    ->relationship('tariff', 'description')
+                    ->disabled()
+                    ->dehydrated(false)
+                    ->helperText('Asignada automáticamente según modalidad y vocacional'),
             ]);
     }
 
@@ -112,11 +118,12 @@ class SimulationApplicantResource extends Resource
                 TextColumn::make('phone_mobile')
                     ->label('Teléfono')
                     ->searchable(),
-                TextColumn::make('phone_other')
-                    ->label('Otro Tel.')
-                    ->searchable(),
                 TextColumn::make('examSimulation.code')
                     ->label('Simulacro')
+                    ->sortable(),
+                TextColumn::make('tariff.code')
+                    ->label('Tarifa')
+                    ->badge()
                     ->sortable(),
                 TextColumn::make('classroom.code')
                     ->label('Aula')
