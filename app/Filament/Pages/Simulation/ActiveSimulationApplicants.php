@@ -339,7 +339,8 @@ class ActiveSimulationApplicants extends Page implements HasTable
                     ->falseIcon('heroicon-o-x-circle')
                     ->trueColor('success')
                     ->falseColor('danger')
-                    ->getStateUsing(fn(SimulationApplicant $record): bool => $record->hasPhoto()),
+                    ->getStateUsing(fn(SimulationApplicant $record): bool => $record->hasPhoto())
+                    ->toggleable(),                    
                 TextColumn::make('simulationProcess.payment_at')
                     ->label('Pagado')
                     ->dateTime('d/m/Y H:i')
