@@ -90,7 +90,7 @@ class ProcessStepCompleted extends Notification implements ShouldQueue
                 ->line("2. Completa tu inscripción al simulacro")
                 ->action('Continuar inscripción', config('app.url_simulacro') . '/intranet/personal-data-confirm')
                 ->line("### ℹ️ Información importante:")
-                ->line("- El examen estará disponible durante todo el día de la evaluación")
+                ->line("- El examen estará disponible durante todo el día de la evaluación (**Fecha:** {$examDate})")
                 ->line("- Tendrás **un solo intento** de **3 horas** para completar el examen")
                 ->line("- Asegúrate de tener una conexión a internet estable");
         } else {
@@ -180,6 +180,7 @@ class ProcessStepCompleted extends Notification implements ShouldQueue
         if ($simulation->is_virtual) {
             $message
                 ->line("- Guarda tu código de inscripción")
+                ->line("- Tus credenciales de acceso te serán enviadas un día antes del examen a tu correo registrado")
                 ->line("- El examen estará disponible durante todo el día {$examDate}")
                 ->line("- Tendrás **un solo intento** de **3 horas** para completar el examen")
                 ->line("- Asegúrate de tener una conexión a internet estable")

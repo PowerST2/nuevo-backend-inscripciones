@@ -37,6 +37,19 @@ class SimulationApplicantObserver
     }
 
     /**
+     * Handle the SimulationApplicant "deleting" event.
+     * Eliminar registros de cartera pendientes cuando se elimina un postulante.
+     */
+    public function deleting(SimulationApplicant $simulationApplicant): void
+    {
+        // Eliminar registros de cartera no pagados del postulante
+        PaymentPortfolio::where('payable_type', SimulationApplicant::class)
+            ->where('payable_id', $simulationApplicant->id)
+            ->where('is_paid', false)
+            ->delete();
+    }
+
+    /**
      * Crear registro de obligación de pago (cartera) para el postulante.
      * Este registro representa la deuda que se enviará al banco (OCEF).
      * El pago real (Payment) se creará cuando se procese el CSV del banco confirmando el ingreso.

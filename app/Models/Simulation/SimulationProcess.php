@@ -206,15 +206,22 @@ class SimulationProcess extends Model
         return $saved;
     }
 
-    public function markPaymentComplete(): bool
+    /**
+     * Marcar pago como completado y enviar notificación
+     * 
+     * @param \Carbon\Carbon|null $paymentDate Fecha de pago específica (opcional, usa now() si no se proporciona)
+     * @return bool
+     */
+    public function markPaymentComplete($paymentDate = null): bool
     {
         if (is_null($this->payment_at)) {
-            // Forzamos hora de Lima (UTC-5)
-            $this->payment_at = now('America/Lima');
+            // Usar fecha proporcionada o la fecha/hora actual de Lima
+            $this->payment_at = $paymentDate ?? now('America/Lima');
             $saved = $this->save();
             
             // Enviar notificación de pago confirmado
             if ($saved && $this->simulationApplicant && $this->simulationApplicant->email) {
+                $this->simulationApplicant->loadMissing(['examSimulation', 'tariff']);
                 $this->simulationApplicant->notify(new ProcessStepCompleted('payment', $this->simulationApplicant));
             }
             
