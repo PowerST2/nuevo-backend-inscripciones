@@ -54,8 +54,28 @@
             </div>
         </div>
 
+        {{-- Mensaje para simulacro virtual --}}
+        @if($this->isVirtualSimulation)
+            <div class="fi-section rounded-xl bg-info-50 dark:bg-info-500/10 shadow-sm ring-1 ring-info-500/20 dark:ring-info-400/20 p-8">
+                <div class="flex flex-col items-center justify-center text-center space-y-4">
+                    <div class="flex h-20 w-20 items-center justify-center rounded-full bg-info-100 dark:bg-info-500/20">
+                        <x-filament::icon icon="heroicon-o-computer-desktop" class="h-10 w-10 text-info-600 dark:text-info-400" />
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-info-700 dark:text-info-300">
+                            Simulacro Virtual
+                        </h3>
+                        <p class="mt-2 text-info-600 dark:text-info-400 max-w-md">
+                            Este proceso de Simulacro Virtual no incluye verificación de fotos.
+                        </p>
+                        <p class="mt-1 text-sm text-info-500 dark:text-info-500">
+                            Los postulantes no necesitan subir foto para este tipo de simulacro.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        @elseif($this->currentPhoto)
         {{-- Visor de foto actual --}}
-        @if($this->currentPhoto)
             <div wire:key="photo-{{ $this->currentPhoto['id'] }}" class="fi-section rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 overflow-hidden">
                 <div class="flex flex-col lg:flex-row">
                     {{-- Imagen grande --}}

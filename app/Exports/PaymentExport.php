@@ -82,9 +82,16 @@ class PaymentExport implements WithEvents, WithTitle, WithProperties
 
         $portfolios = $query->with(['tariff', 'payable'])->get();
 
+        // Filtrar portfolios que tengan postulante existente
+        // Los portfolios huérfanos (sin postulante) no se incluyen en la descarga
+        // pero se mantienen en la base de datos como registro histórico
+        $validPortfolios = $portfolios->filter(function ($portfolio) {
+            return $portfolio->payable !== null;
+        });
+
         $batchNumber = PaymentPortfolio::generateBatchNumber();
         
-        $data = $portfolios->map(function ($portfolio) {
+        $data = $validPortfolios->map(function ($portfolio) {
             // Obtener datos del postulante
             $applicant = $portfolio->payable;
             
@@ -104,7 +111,7 @@ class PaymentExport implements WithEvents, WithTitle, WithProperties
         });
 
         $export = new static($data, $batchNumber);
-        $export->portfolioIds = $portfolios->pluck('id')->toArray();
+        $export->portfolioIds = $validPortfolios->pluck('id')->toArray();
 
         return $export;
     }

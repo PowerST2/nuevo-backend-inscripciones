@@ -524,9 +524,8 @@ class UploadBcpPayments extends Page implements HasForms, HasTable
                     'user_id' => auth()->id(),
                 ]);
 
-                // Actualizar proceso del postulante
-                $applicant->simulationProcess->payment_at = $paymentDate;
-                $applicant->simulationProcess->save();
+                // Actualizar proceso del postulante y enviar notificación
+                $applicant->simulationProcess->markPaymentComplete($paymentDate);
 
                 // Marcar cartera como pagada y vincular al Payment creado
                 if ($portfolio) {

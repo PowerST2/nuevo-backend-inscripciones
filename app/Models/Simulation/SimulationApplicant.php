@@ -93,6 +93,14 @@ class SimulationApplicant extends Model
     }
 
     /**
+     * Relación polimórfica con los pagos
+     */
+    public function payments()
+    {
+        return $this->morphMany(\App\Models\Payment::class, 'payable');
+    }
+
+    /**
      * Verificar si el postulante puede editar sus datos
      */
     public function canEditData(): bool

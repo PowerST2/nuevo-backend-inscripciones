@@ -21,6 +21,7 @@ class SimulationProcess extends Model
 
     protected $fillable = [
         'simulation_applicant_id',
+        'exam_simulation_id',
         'pre_registration_at',
         'payment_at',
         'photo_at',
@@ -43,6 +44,11 @@ class SimulationProcess extends Model
     public function simulationApplicant()
     {
         return $this->belongsTo(SimulationApplicant::class);
+    }
+
+    public function examSimulation()
+    {
+        return $this->belongsTo(ExamSimulation::class);
     }
 
     public function canEditData(): bool
@@ -69,14 +75,7 @@ class SimulationProcess extends Model
         $this->photo_status = self::PHOTO_STATUS_PENDING;
         $this->photo_rejected_reason = null;
         $this->photo_reviewed_at = null;
-        $saved = $this->save();
-        
-        // Enviar notificación de pre-registro completado
-        if ($saved && $this->simulationApplicant && $this->simulationApplicant->email) {
-            $this->simulationApplicant->notify(new ProcessStepCompleted('pre_registration', $this->simulationApplicant));
-        }
-        
-        return $saved;
+        return $this->save();
     }
 
     /**
@@ -207,15 +206,22 @@ class SimulationProcess extends Model
         return $saved;
     }
 
-    public function markPaymentComplete(): bool
+    /**
+     * Marcar pago como completado y enviar notificación
+     * 
+     * @param \Carbon\Carbon|null $paymentDate Fecha de pago específica (opcional, usa now() si no se proporciona)
+     * @return bool
+     */
+    public function markPaymentComplete($paymentDate = null): bool
     {
         if (is_null($this->payment_at)) {
-            // Forzamos hora de Lima (UTC-5)
-            $this->payment_at = now('America/Lima');
+            // Usar fecha proporcionada o la fecha/hora actual de Lima
+            $this->payment_at = $paymentDate ?? now('America/Lima');
             $saved = $this->save();
             
             // Enviar notificación de pago confirmado
             if ($saved && $this->simulationApplicant && $this->simulationApplicant->email) {
+                $this->simulationApplicant->loadMissing(['examSimulation', 'tariff']);
                 $this->simulationApplicant->notify(new ProcessStepCompleted('payment', $this->simulationApplicant));
             }
             

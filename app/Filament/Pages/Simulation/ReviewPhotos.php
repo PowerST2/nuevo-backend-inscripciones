@@ -311,4 +311,14 @@ class ReviewPhotos extends Page
     {
         return $this->totalPending;
     }
+
+    public function getIsVirtualSimulationProperty(): bool
+    {
+        if (!$this->selectedSimulationId) {
+            return false;
+        }
+
+        $simulation = ExamSimulation::find($this->selectedSimulationId);
+        return $simulation?->is_virtual ?? false;
+    }
 }

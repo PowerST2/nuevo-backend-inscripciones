@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Simulation\SimulationProcesses;
 
 use App\Filament\Resources\Simulation\SimulationProcesses\Pages\ManageSimulationProcesses;
+use App\Models\Simulation\ExamSimulation;
 use App\Models\Simulation\SimulationProcess;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -17,8 +18,10 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 class SimulationProcessResource extends Resource
@@ -128,7 +131,8 @@ class SimulationProcessResource extends Resource
                     ->trueIcon(Heroicon::OutlinedCheckCircle)
                     ->falseIcon(Heroicon::OutlinedXCircle)
                     ->trueColor('success')
-                    ->falseColor('danger'),
+                    ->falseColor('danger')
+                    ->toggleable(),
                 IconColumn::make('photo_reviewed_at')
                     ->label('Foto Verificada')
                     ->boolean()
@@ -136,7 +140,8 @@ class SimulationProcessResource extends Resource
                     ->trueIcon(Heroicon::OutlinedCheckCircle)
                     ->falseIcon(Heroicon::OutlinedXCircle)
                     ->trueColor('success')
-                    ->falseColor('danger'),
+                    ->falseColor('danger')
+                    ->toggleable(),
                 IconColumn::make('payment_at')
                     ->label('Pago')
                     ->boolean()
@@ -160,6 +165,13 @@ class SimulationProcessResource extends Resource
             ])
             ->defaultSort('id', 'desc')
             ->filters([
+                SelectFilter::make('exam_simulation_id')
+                    ->label('Simulacro')
+                    ->options(fn () => ExamSimulation::orderBy('created_at', 'desc')
+                        ->pluck('description', 'id')
+                        ->toArray())
+                    ->default(fn () => ExamSimulation::where('active', true)->first()?->id)
+                    ->selectablePlaceholder(false),
                 TernaryFilter::make('payment_status')
                     ->label('Estado de Pago')
                     ->placeholder('Todos')
