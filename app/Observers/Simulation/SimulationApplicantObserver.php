@@ -5,6 +5,7 @@ namespace App\Observers\Simulation;
 use App\Models\PaymentPortfolio;
 use App\Models\Simulation\SimulationApplicant;
 use App\Models\Simulation\SimulationProcess;
+use App\Notifications\Simulation\ProcessStepCompleted;
 
 class SimulationApplicantObserver
 {
@@ -16,6 +17,7 @@ class SimulationApplicantObserver
         // Crear el proceso de simulacro
         SimulationProcess::create([
             'simulation_applicant_id' => $simulationApplicant->id,
+            'exam_simulation_id' => $simulationApplicant->exam_simulation_id,
             // Aquí definimos la hora de creación manual con UTC-5
             'pre_registration_at' => now('America/Lima'),
             'payment_at' => null,
@@ -25,6 +27,13 @@ class SimulationApplicantObserver
 
         // Crear el registro de obligación de pago (cartera para OCEF)
         $this->createPaymentObligation($simulationApplicant);
+
+        // Enviar notificación de pre-inscripción completada
+        // Cargar relaciones necesarias para la notificación
+        if ($simulationApplicant->email) {
+            $simulationApplicant->loadMissing(['examSimulation', 'tariff']);
+            $simulationApplicant->notify(new ProcessStepCompleted('pre_registration', $simulationApplicant));
+        }
     }
 
     /**

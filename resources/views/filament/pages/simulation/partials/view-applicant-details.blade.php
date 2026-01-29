@@ -17,6 +17,7 @@
                 <p><strong>Teléfono:</strong> {{ $applicant->phone_mobile ?? 'No registrado' }}</p>
                 <p><strong>Foto:</strong> {{ $applicant->hasPhoto() ? 'Cargada' : ($applicant->requiresPhoto() ? 'Requerida - No cargada' : 'No requerida') }}</p>
                 <p><strong>Aula Asignada:</strong> {{ $applicant->classroom ?? 'No asignada' }}</p>
+                <p><strong>Vocacional:</strong> {{ $applicant->include_vocational ? 'Incluye Vocacional' : 'No incluye Vocacional' }}</p>
             </td>
         </tr>
     </table>
@@ -43,6 +44,26 @@
             </li>            
             <li>Confirmación: {{ $applicant->simulationProcess->data_confirmation_at ? $applicant->simulationProcess->data_confirmation_at->format('d/m/Y H:i') : 'Pendiente' }}</li>
         </ul>
+    @endif
+
+    <hr style="margin: 15px 0;">
+    <p><strong>Pagos Registrados:</strong></p>
+    @if($applicant->payments->count() > 0)
+        <ul style="margin: 5px 0; padding-left: 20px;">
+            @foreach($applicant->payments as $payment)
+                <li>
+                    <strong>{{ $payment->receipt }}</strong> - 
+                    S/ {{ number_format($payment->amount, 2) }} - 
+                    {{ $payment->payment_date?->format('d/m/Y') }} - 
+                    {{ $payment->bank ?? 'Sin banco' }}
+                    @if($payment->operation)
+                        (Op: {{ $payment->operation }})
+                    @endif
+                </li>
+            @endforeach
+        </ul>
+    @else
+        <p style="margin: 5px 0; padding-left: 20px; color: #6b7280;">Sin pagos registrados</p>
     @endif
 
     <hr style="margin: 15px 0;">

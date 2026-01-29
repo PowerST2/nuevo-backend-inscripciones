@@ -21,6 +21,7 @@ class SimulationProcess extends Model
 
     protected $fillable = [
         'simulation_applicant_id',
+        'exam_simulation_id',
         'pre_registration_at',
         'payment_at',
         'photo_at',
@@ -43,6 +44,11 @@ class SimulationProcess extends Model
     public function simulationApplicant()
     {
         return $this->belongsTo(SimulationApplicant::class);
+    }
+
+    public function examSimulation()
+    {
+        return $this->belongsTo(ExamSimulation::class);
     }
 
     public function canEditData(): bool
@@ -69,14 +75,7 @@ class SimulationProcess extends Model
         $this->photo_status = self::PHOTO_STATUS_PENDING;
         $this->photo_rejected_reason = null;
         $this->photo_reviewed_at = null;
-        $saved = $this->save();
-        
-        // Enviar notificación de pre-registro completado
-        if ($saved && $this->simulationApplicant && $this->simulationApplicant->email) {
-            $this->simulationApplicant->notify(new ProcessStepCompleted('pre_registration', $this->simulationApplicant));
-        }
-        
-        return $saved;
+        return $this->save();
     }
 
     /**
