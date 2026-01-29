@@ -76,6 +76,8 @@ class ProcessStepCompleted extends Notification implements ShouldQueue
 
     protected function paymentMessage($simulation): MailMessage
     {
+        $examDate = $simulation->exam_date ? \Carbon\Carbon::parse($simulation->exam_date)->format('d/m/Y') : 'Por confirmar';
+        
         $message = (new MailMessage)
             ->subject("✅ Pago confirmado - {$simulation->description}")
             ->greeting("¡Hola, {$this->applicant->first_names}!")
