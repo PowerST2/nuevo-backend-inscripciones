@@ -42,6 +42,7 @@ class SimulationApplicantsExport implements FromCollection, WithHeadings, WithMa
             'Fecha Pago',
             'Fecha Inscripción',
             'Fecha Registro',
+            'include_vocational'
         ];
     }
 
@@ -60,6 +61,7 @@ class SimulationApplicantsExport implements FromCollection, WithHeadings, WithMa
             $applicant->simulationProcess?->payment_at?->format('d/m/Y H:i') ?? 'Pendiente',
             $applicant->simulationProcess?->registration_at?->format('d/m/Y H:i') ?? 'Pendiente',
             $applicant->created_at?->format('d/m/Y H:i'),
+            $applicant->include_vocational ? 'Sí' : 'No',
         ];
     }
 
