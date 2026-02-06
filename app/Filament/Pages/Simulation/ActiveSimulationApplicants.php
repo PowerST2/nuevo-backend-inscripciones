@@ -241,7 +241,7 @@ class ActiveSimulationApplicants extends Page implements HasTable
 
         // Aplicar filtros activos
         $filters = $this->tableFilters;
-        
+
         if (!empty($filters['has_photo']['value'])) {
             $query = match ($filters['has_photo']['value']) {
                 'with_photo' => $query->whereNotNull('photo_path')->where('photo_path', '!=', ''),
@@ -332,6 +332,14 @@ class ActiveSimulationApplicants extends Page implements HasTable
                     ->label('Correo')
                     ->searchable()
                     ->toggleable(),
+                IconColumn::make('include_vocational')
+                    ->label('Vocacional')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('danger')
+                    ->toggleable(),
                 IconColumn::make('has_photo')
                     ->label('Foto')
                     ->boolean()
@@ -340,7 +348,7 @@ class ActiveSimulationApplicants extends Page implements HasTable
                     ->trueColor('success')
                     ->falseColor('danger')
                     ->getStateUsing(fn(SimulationApplicant $record): bool => $record->hasPhoto())
-                    ->toggleable(),                    
+                    ->toggleable(),
                 TextColumn::make('simulationProcess.payment_at')
                     ->label('Pagado')
                     ->dateTime('d/m/Y H:i')
@@ -434,9 +442,9 @@ class ActiveSimulationApplicants extends Page implements HasTable
                                 ->send();
                         }
                     })
-                    ->visible(fn(SimulationApplicant $record): bool => 
+                    ->visible(fn(SimulationApplicant $record): bool =>
                         $this->canGenerateCode() &&
-                        $record->simulationProcess?->data_confirmation_at !== null && 
+                        $record->simulationProcess?->data_confirmation_at !== null &&
                         empty($record->code)
                     ),
                 Action::make('edit')
