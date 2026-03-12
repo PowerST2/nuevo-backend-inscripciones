@@ -117,7 +117,7 @@ class SimulationApplicantsHistory extends Page implements HasTable
                             ->orderBy('exam_date', 'desc')
                             ->get()
                             ->pluck('description', 'id')
-                    ),
+                    ), 
                 SelectFilter::make('has_photo')
                     ->label('Estado de Foto')
                     ->options([
